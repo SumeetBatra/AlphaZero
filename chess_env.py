@@ -42,6 +42,7 @@ class Chess(gym.Env):
 
 	def reset(self):
 		self.board.reset()
+		return self.board.copy()
 
 	def render(self, mode='human'):
 		print(self.board)
