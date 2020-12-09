@@ -9,7 +9,7 @@ class ConvBlock(nn.Module):
 			nn.Conv2d(in_planes, out_planes, kernel, stride),
 			nn.BatchNorm2d(out_planes),
 			nn.ReLU()
-		)
+	)
 
 	def forward(self, x):
 		return self.block(x)
