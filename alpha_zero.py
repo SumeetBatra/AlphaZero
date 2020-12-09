@@ -3,84 +3,88 @@ import torch.nn as nn
 
 
 class ConvBlock(nn.Module):
-	def __init__(self, in_planes, out_planes=256, kernel=3, stride=1):
-		super(ConvBlock).__init__()
-		self.block = nn.Sequential(
-			nn.Conv2d(in_planes, out_planes, kernel, stride),
-			nn.BatchNorm2d(out_planes),
-			nn.ReLU()
-	)
+    def __init__(self, in_planes, out_planes=256, kernel=3, stride=1):
+        super(ConvBlock).__init__()
+        self.block = nn.Sequential(
+            nn.Conv2d(in_planes, out_planes, kernel, stride),
+            nn.BatchNorm2d(out_planes),
+            nn.ReLU()
+        )
 
-	def forward(self, x):
-		return self.block(x)
+    def forward(self, x):
+        return self.block(x)
+
 
 class ResBlock(nn.Module):
-	def __init__(self, in_planes, out_planes=256, kernel=3, stride=1):
-		super(ResBlock).__init__()
-		self.block = nn.Sequential(
-			nn.Conv2d(in_planes, out_planes, kernel, stride),
-			nn.BatchNorm2d(out_planes),
-			nn.ReLU(),
-			nn.Conv2d(out_planes, out_planes, kernel, stride),
-			nn.BatchNorm2d(out_planes)
-		)
+    def __init__(self, in_planes, out_planes=256, kernel=3, stride=1):
+        super(ResBlock).__init__()
+        self.block = nn.Sequential(
+            nn.Conv2d(in_planes, out_planes, kernel, stride),
+            nn.BatchNorm2d(out_planes),
+            nn.ReLU(),
+            nn.Conv2d(out_planes, out_planes, kernel, stride),
+            nn.BatchNorm2d(out_planes)
+        )
 
-	def forward(self, x):
-		out = self.block(x)
-		out += x
-		out = nn.ReLU(out)
-		return out
+    def forward(self, x):
+        out = self.block(x)
+        out += x
+        out = nn.ReLU(out)
+        return out
+
 
 class PolicyHead(nn.Module):
-	def __init__(self, n_moves, in_planes, out_planes=2, kernel=1, stride=1, board_size=8):
-		super(PolicyHead).__init__()
-		self.block = nn.Sequential(
-			nn.Conv2d(in_planes, out_planes, kernel, stride),
-			nn.BatchNorm2d(out_planes),
-			nn.ReLU(),
-			nn.Linear(board_size**2 * 2, n_moves)
-		)
+    def __init__(self, n_moves, in_planes, out_planes=2, kernel=1, stride=1, board_size=8):
+        super(PolicyHead).__init__()
+        self.block = nn.Sequential(
+            nn.Conv2d(in_planes, out_planes, kernel, stride),
+            nn.BatchNorm2d(out_planes),
+            nn.ReLU(),
+            nn.Linear(board_size ** 2 * 2, n_moves)
+        )
 
-	def forward(self, x):
-		return self.block(x)
+    def forward(self, x):
+        return self.block(x)
+
 
 class ValueHead(nn.Module):
-	def __init__(self, in_planes, out_planes=1, kernel=1, stride=1, board_size=8):
-		super(ValueHead).__init__()
-		self.block = nn.Sequential(
-			nn.Conv2d(in_planes, out_planes, kernel, stride),
-			nn.BatchNorm2d(),
-			nn.ReLU(),
-			nn.Linear(board_size**2, 256),
-			nn.ReLU(),
-			nn.Linear(256, 1),
-			nn.Tanh()
-		)
+    def __init__(self, in_planes, out_planes=1, kernel=1, stride=1, board_size=8):
+        super(ValueHead).__init__()
+        self.block = nn.Sequential(
+            nn.Conv2d(in_planes, out_planes, kernel, stride),
+            nn.BatchNorm2d(),
+            nn.ReLU(),
+            nn.Linear(board_size ** 2, 256),
+            nn.ReLU(),
+            nn.Linear(256, 1),
+            nn.Tanh()
+        )
 
-	def forward(self, x):
-		return self.block(x)
+    def forward(self, x):
+        return self.block(x)
+
 
 class AlphaZero(nn.Module):
-	def __init__(self, in_planes, arch='dual-res', height=20):
-		super(AlphaZero).__init__()
-		self.arch = arch
-		self.height = height
-		self.in_planes = in_planes
-		self.policy_head = PolicyHead(in_planes)
-		self.value_head = ValueHead(in_planes)
+    def __init__(self, in_planes, arch='dual-res', height=20):
+        super(AlphaZero).__init__()
+        self.arch = arch
+        self.height = height
+        self.in_planes = in_planes
+        self.policy_head = PolicyHead(in_planes)
+        self.value_head = ValueHead(in_planes)
 
-	def make_tower(self):
-		tower = []
-		if self.arch == 'dual-res':
-			for i in range(self.height):
-				res_block = ResBlock(self.in_planes)
-				tower.append(res_block)
-		tower = nn.Sequential(*tower)
-		return tower
+    def make_tower(self):
+        tower = []
+        if self.arch == 'dual-res':
+            for i in range(self.height):
+                res_block = ResBlock(self.in_planes)
+                tower.append(res_block)
+        tower = nn.Sequential(*tower)
+        return tower
 
-	def forward(self, x):
-		tower = self.make_tower()
-		x = tower(x)
-		actions = self.policy_head(x)
-		value = self.value_head(x)
-		return actions, value
+    def forward(self, x):
+        tower = self.make_tower()
+        x = tower(x)
+        actions = self.policy_head(x)
+        value = self.value_head(x)
+        return actions, value
