@@ -1,20 +1,40 @@
 import gym
 import chess
+import numpy as np
 
 from gym import spaces
 from chess import svg
 
+#  capitalized = White
+pieces_to_id = {
+    'R': 1, 'N': 2, 'B': 3, 'Q': 4, 'K': 5, 'P': 6,
+    'r': -1, 'n': -2, 'b': -3, 'q': -4, 'k': -5, 'p': -6,
+    '.': 0
+}
 
-class Chess(gym.Env):
+
+class ChessEnv(gym.Env):
     def __init__(self):
-        super(Chess, self).__init__()
+        super(ChessEnv, self).__init__()
         self.board = chess.Board()
         self.board_render = svg.board()
 
         self.n_discrete_actions = 4672  # all possible 'queen' and 'knight' moves from an arbitrary square to any other arbitrary square
         self.action_space = spaces.Discrete(self.n_discrete_actions)
         self.steps = 8
-        self.observation_space = None  # TODO: fix this???
+        self.observation_space = gym.spaces.Box(-6, 6, (8, 8))
+        self.n_planes = 119  # from AlphaZero paper
+
+    def transform_board(self, board):
+        '''
+        convert chess.Board representation to numeric id board representation
+        :param board: chess.Board
+        :return: id_board numerical representation
+        '''
+        board = str(board).split()
+        board = [pieces_to_id[s] for s in board]
+        board = np.array(board).reshape((8, 8))
+        return board
 
     def step(self, action: chess.Move):
         '''
@@ -33,6 +53,9 @@ class Chess(gym.Env):
         obs = self.board.copy()
         if self.board.turn == chess.BLACK:
             obs = self.board.transform(chess.flip_vertical).copy()
+        obs = str(obs).split()
+        obs = [pieces_to_id[s] for s in obs]
+        obs = np.array(obs).reshape(self.observation_space.shape)
 
         rew = self.board.result()
         done = self.board.is_game_over()
@@ -42,7 +65,11 @@ class Chess(gym.Env):
 
     def reset(self):
         self.board.reset()
-        return self.board.copy()
+        obs = self.board.copy()
+        obs = str(obs).split()
+        obs = [pieces_to_id[s] for s in obs]
+        obs = np.array(obs).reshape(self.observation_space.shape)
+        return obs
 
     def render(self, mode='human'):
         print(self.board)

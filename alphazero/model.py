@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 
 
@@ -52,7 +51,7 @@ class ValueHead(nn.Module):
         super(ValueHead).__init__()
         self.block = nn.Sequential(
             nn.Conv2d(in_planes, out_planes, kernel, stride),
-            nn.BatchNorm2d(),
+            nn.BatchNorm2d(out_planes),
             nn.ReLU(),
             nn.Linear(board_size ** 2, 256),
             nn.ReLU(),
