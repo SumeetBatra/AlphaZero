@@ -71,6 +71,7 @@ class AlphaZero(nn.Module):
         self.in_planes = in_planes
         self.policy_head = PolicyHead(in_planes)
         self.value_head = ValueHead(in_planes)
+        self.tower = self.make_tower()
 
     def make_tower(self):
         tower = []
@@ -82,8 +83,7 @@ class AlphaZero(nn.Module):
         return tower
 
     def forward(self, x):
-        tower = self.make_tower()
-        x = tower(x)
+        x = self.tower(x)
         actions = self.policy_head(x)
         value = self.value_head(x)
         return actions, value

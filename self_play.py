@@ -9,9 +9,9 @@ from learn import learn
 SIMULATIONS = 800
 
 
-def self_play(state: Board, model: AlphaZero, env: ChessEnv):
+def self_play(state: Board):
     mcts = MCTS(state)
     for i in range(SIMULATIONS):
         mcts.search()
     data = mcts.play()
-    learn(model, data, env)
+    return data
