@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class ConvBlock(nn.Module):
     def __init__(self, in_planes, out_planes=256, kernel=3, stride=1):
-        super(ConvBlock).__init__()
+        super(ConvBlock, self).__init__()
         self.block = nn.Sequential(
             nn.Conv2d(in_planes, out_planes, kernel, stride),
             nn.BatchNorm2d(out_planes),
@@ -16,7 +16,7 @@ class ConvBlock(nn.Module):
 
 class ResBlock(nn.Module):
     def __init__(self, in_planes, out_planes=256, kernel=3, stride=1):
-        super(ResBlock).__init__()
+        super(ResBlock, self).__init__()
         self.block = nn.Sequential(
             nn.Conv2d(in_planes, out_planes, kernel, stride),
             nn.BatchNorm2d(out_planes),
@@ -34,7 +34,7 @@ class ResBlock(nn.Module):
 
 class PolicyHead(nn.Module):
     def __init__(self, n_moves, in_planes, out_planes=2, kernel=1, stride=1, board_size=8):
-        super(PolicyHead).__init__()
+        super(PolicyHead, self).__init__()
         self.block = nn.Sequential(
             nn.Conv2d(in_planes, out_planes, kernel, stride),
             nn.BatchNorm2d(out_planes),
@@ -48,7 +48,7 @@ class PolicyHead(nn.Module):
 
 class ValueHead(nn.Module):
     def __init__(self, in_planes, out_planes=1, kernel=1, stride=1, board_size=8):
-        super(ValueHead).__init__()
+        super(ValueHead, self).__init__()
         self.block = nn.Sequential(
             nn.Conv2d(in_planes, out_planes, kernel, stride),
             nn.BatchNorm2d(out_planes),
@@ -64,12 +64,13 @@ class ValueHead(nn.Module):
 
 
 class AlphaZero(nn.Module):
-    def __init__(self, in_planes, arch='dual-res', height=20):
-        super(AlphaZero).__init__()
+    def __init__(self, in_planes, arch='dual-res', height=20, n_moves=4672):
+        super(AlphaZero, self).__init__()
         self.arch = arch
         self.height = height
+        self.n_moves = n_moves
         self.in_planes = in_planes
-        self.policy_head = PolicyHead(in_planes)
+        self.policy_head = PolicyHead(n_moves, in_planes)
         self.value_head = ValueHead(in_planes)
         self.tower = self.make_tower()
 

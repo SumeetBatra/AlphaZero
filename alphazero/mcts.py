@@ -2,8 +2,13 @@ import chess
 import torch
 import numpy as np
 
+import learn
+
 from abc import ABC, abstractmethod
 from torch.distributions.categorical import Categorical
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+TIME_STEPS = 8
 
 
 class MCTS:
@@ -23,15 +28,15 @@ class MCTS:
         return node
 
     @staticmethod
-    def _expand(self, leaf):
+    def _expand(leaf, model):
         """
         Send the leaf node to the neural network for evaluation
         :return: value v and the leaf node
         """
-        return leaf.expand()
+        return leaf.expand(model)
 
     @staticmethod
-    def _backprop(self, node, val):
+    def _backprop(node, val):
         while node:
             node.W += val
             node.N += 1
@@ -58,9 +63,9 @@ class MCTS:
         return node.children[idx]
 
 
-    def search(self):
+    def search(self, model):
         leaf = self._select()
-        val = self._expand(leaf)
+        val = self._expand(leaf, model)
         self._backprop(leaf, val)
 
     def play(self):
@@ -99,16 +104,20 @@ class ChessBoard(MCTSNode):
     def __init__(self, board, p_a, parent=None):
         super(ChessBoard).__init__()
         self.board = board
-        self.color = board.turn()
+        self.board_stack = [board]
+        self.color = board.turn
         self.children = dict()  # {chess.move: ChessBoard Node} pair
         self.parent = parent
-        self.untried_actions = self.board.legal_moves
+        self.untried_actions = list(self.board.legal_moves)
         self.N_total = 0  # sum of visit counts of all children
         # These are actually stats for the edge that led to this child node
         self.N = 0  # visit count to this node from parent
         self.W = 0
         self.Q = 0
         self.P = p_a
+
+        if self.parent:
+            self.board_stack.extend(self.parent.board_stack)
 
     def terminal_reward(self):
         res = self.board.result()[0:2]  # can be '1-0', '0-1', or '1/2-1/2'
@@ -124,9 +133,14 @@ class ChessBoard(MCTSNode):
             return self.terminal_reward()
 
         action = self.untried_actions.pop()
-        new_board = self.board.copy()
+        new_board = self.board.copy().transform(chess.flip_vertical)  # board reoriented based on current player
         new_board.push(action)
-        p_a, val = model(action)  # TODO: This should happen async. on another thread (?)
+
+        boards = self.board_stack[-7:] + [new_board]
+        color, total_moves, w_castling, b_castling, no_progress_count = learn.get_additional_feature(new_board)
+
+        planes = learn.board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progress_count)
+        p_a, val = model(torch.FloatTensor(planes).to(device))  # TODO: This should happen async. on another thread (?) AND should be stack of T boards from T prior timesteps
         child = ChessBoard(new_board, p_a, parent=self)
         self.children[child] = action
         return val

@@ -13,6 +13,18 @@ pieces_to_id = {
 }
 
 
+def transform_boards(boards):
+    '''
+    convert chess.Board(s) representation to numerical id board(s) representation
+    :param board: chess.Board(s)
+    :return: id_board(s) numerical representation
+    '''
+    boards = [str(board).split() for board in boards]
+    boards = [[pieces_to_id[s]] for board in boards for s in board]
+    boards = [np.array(board).reshape((8,8)) for board in boards]
+    return boards
+
+
 class ChessEnv(gym.Env):
     def __init__(self):
         super(ChessEnv, self).__init__()
@@ -24,17 +36,6 @@ class ChessEnv(gym.Env):
         self.steps = 8
         self.observation_space = gym.spaces.Box(-6, 6, (8, 8))
         self.n_planes = 119  # from AlphaZero paper
-
-    def transform_board(self, board):
-        '''
-        convert chess.Board representation to numeric id board representation
-        :param board: chess.Board
-        :return: id_board numerical representation
-        '''
-        board = str(board).split()
-        board = [pieces_to_id[s] for s in board]
-        board = np.array(board).reshape((8, 8))
-        return board
 
     def step(self, action: chess.Move):
         '''
@@ -53,9 +54,9 @@ class ChessEnv(gym.Env):
         obs = self.board.copy()
         if self.board.turn == chess.BLACK:
             obs = self.board.transform(chess.flip_vertical).copy()
-        obs = str(obs).split()
-        obs = [pieces_to_id[s] for s in obs]
-        obs = np.array(obs).reshape(self.observation_space.shape)
+        # obs = str(obs).split()
+        # obs = [pieces_to_id[s] for s in obs]
+        # obs = np.array(obs).reshape(self.observation_space.shape)
 
         rew = self.board.result()
         done = self.board.is_game_over()
@@ -66,9 +67,9 @@ class ChessEnv(gym.Env):
     def reset(self):
         self.board.reset()
         obs = self.board.copy()
-        obs = str(obs).split()
-        obs = [pieces_to_id[s] for s in obs]
-        obs = np.array(obs).reshape(self.observation_space.shape)
+        # obs = str(obs).split()
+        # obs = [pieces_to_id[s] for s in obs]
+        # obs = np.array(obs).reshape(self.observation_space.shape)
         return obs
 
     def render(self, mode='human'):

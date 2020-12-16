@@ -14,7 +14,7 @@ from torch.utils.data.dataloader import DataLoader
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-TOTAL_STEPS = 7e5
+TOTAL_STEPS = int(7e5)
 USE_TENSORBOARD = False
 BATCH_SIZE = 32
 L2_REG = 1e-4
@@ -42,11 +42,10 @@ def test():
     print(board)
     print('\n')
     print(board.transform(chess.flip_vertical))
-    learn(env)
 
 
 def train():
-    env = chess_env.ChessEnv
+    env = chess_env.ChessEnv()
     obs_dim = int(env.observation_space.shape[0] * env.observation_space.shape[1])
     n_acts = env.action_space.n
     model = AlphaZero(env.n_planes).to(device)
@@ -56,13 +55,12 @@ def train():
     train_data = []
     dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
 
-
     for i in range(TOTAL_STEPS):
         if i > 0:
-            self_play(obs)
+            self_play(obs, model)
             learn(env, model, optimizer, dataloader)
         else:
-            self_play(obs)
+            self_play(obs, model)
 
 
 if __name__ == '__main__':
