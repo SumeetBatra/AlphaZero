@@ -20,8 +20,8 @@ def transform_boards(boards):
     :return: id_board(s) numerical representation
     '''
     boards = [str(board).split() for board in boards]
-    boards = [[pieces_to_id[s]] for board in boards for s in board]
-    boards = [np.array(board).reshape((8,8)) for board in boards]
+    boards = [[pieces_to_id[s] for s in board] for board in boards]
+    boards = [np.array(board).reshape((8, 8)) for board in boards]
     return boards
 
 
@@ -29,13 +29,32 @@ class ChessEnv(gym.Env):
     def __init__(self):
         super(ChessEnv, self).__init__()
         self.board = chess.Board()
-        self.board_render = svg.board()
-
+        self._encoded_state_counter = dict()
+        self._max_repetitions = 0
         self.n_discrete_actions = 4672  # all possible 'queen' and 'knight' moves from an arbitrary square to any other arbitrary square
         self.action_space = spaces.Discrete(self.n_discrete_actions)
         self.steps = 8
         self.observation_space = gym.spaces.Box(-6, 6, (8, 8))
-        self.n_planes = 119  # from AlphaZero paper
+        self.n_planes = 111  # AlphaZero is 119, but here I use repetitions = 1 instead of 2 b/c idk why you need 2
+
+    @property
+    def repetitions(self):
+        return self._max_repetitions
+
+    def encode_state(self, board: chess.Board):
+        '''
+        Encode the board to check for repetitions
+        :param board: chess.Board
+        :return: True if repetitions >=3 (implies threefold repetition can be claimed) else False
+        '''
+        encoding = board.fen()
+        self._encoded_state_counter[encoding] = self._encoded_state_counter.get(encoding, 0) + 1
+
+        if self._encoded_state_counter[encoding] > self._max_repetitions:
+            self._max_repetitions = self._encoded_state_counter[encoding]
+        if self._max_repetitions >= 3:
+            return True
+        return False
 
     def step(self, action: chess.Move):
         '''
@@ -67,6 +86,8 @@ class ChessEnv(gym.Env):
     def reset(self):
         self.board.reset()
         obs = self.board.copy()
+        self._max_repetitions = 0
+        self._encoded_state_counter = dict()
         # obs = str(obs).split()
         # obs = [pieces_to_id[s] for s in obs]
         # obs = np.array(obs).reshape(self.observation_space.shape)

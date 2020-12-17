@@ -9,9 +9,10 @@ import chess_env
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TOTAL_STEPS = 7e5
 TIMESTEPS = 8
+M = 13  # From AlphaZero: we have NxN (MT + L) layers. In the paper, M=14 cuz of repetitions=2 instead of 1 for whatever reason
 
 
-def board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progress_count):
+def board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progress_count, repetitions):
     '''
     convert chess.Board to binary layers to feed into a neural network.
     :param env: ChessEnv
@@ -26,42 +27,43 @@ def board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progr
     # assert type(color) == int, "color should be 0(black)/1(white)"
     # assert len(w_castling) == 2, "w_castling should be length 2 list, [1/0 kingside, 1/0 queenside]"
     # assert len(b_castling) == 2, "b_castling should be length 2 list, [1/0 kingside, 1/0 queenside]"
-
-    board_shape = boards[0].shape
+    id_boards = chess_env.transform_boards(boards)
+    board_shape = id_boards[0].shape
     layers = []
     if len(boards) < TIMESTEPS:
-        num_zeros = int(TIMESTEPS - boards)
-        zero_layers = np.zeros((num_zeros, board_shape[0], board_shape[1]))
-        layers.append(zero_layers)
-
-    id_boards = chess_env.transform_boards(boards)
+        num_zeros = int(TIMESTEPS - len(boards))
+        zero_layers = torch.zeros((num_zeros * M, board_shape[0], board_shape[1]))
+        layers.extend([zl for zl in zero_layers])
 
     for id_board in id_boards:
+        id_board = torch.Tensor(id_board)
+        reps_layer = torch.ones_like(id_board) * repetitions
+        layers.append(reps_layer)
         ids = [v for v in chess_env.pieces_to_id.values() if v != 0]  # 0 corresponds to '.', which is not a piece
         for id in ids:
-            mask = np.ones_like(id_board) * int(id)
-            bin_board = mask == id_board
+            mask = torch.ones_like(id_board) * int(id)
+            bin_board = torch.eq(mask, id_board).to(torch.float32)
             layers.append(bin_board)
 
-    color_layer = np.ones(board_shape) if color == chess.WHITE else np.zeros(board_shape)
+    color_layer = torch.ones(board_shape) if color == chess.WHITE else torch.zeros(board_shape)
     layers.append(color_layer)
 
-    moves_layer = np.ones(board_shape) * total_moves
+    moves_layer = torch.ones(board_shape) * total_moves
     layers.append(moves_layer)
 
-    w_castling_layers = [np.ones(board_shape) * x for x in w_castling]
+    w_castling_layers = [torch.ones(board_shape) * x for x in w_castling]
     layers.extend(w_castling_layers)
 
-    b_castling_layers = [np.ones(board_shape) * x for x in b_castling]
+    b_castling_layers = [torch.ones(board_shape) * x for x in b_castling]
     layers.extend(b_castling_layers)
 
-    no_progress_layer = np.ones(board_shape) * no_progress_count
+    no_progress_layer = torch.ones(board_shape) * no_progress_count
     layers.append(no_progress_layer)
 
-    return torch.cat(layers)
+    return torch.cat(layers).unsqueeze(dim=0).reshape(-1, board_shape[0], board_shape[1])
 
 
-def get_additional_feature(board: chess.Board):
+def get_additional_features(board: chess.Board, env):
     '''
     Get additional features like color, total move count, etc from a board state
     :param board: chess.Board
@@ -75,14 +77,15 @@ def get_additional_feature(board: chess.Board):
     b_castling = [board.has_kingside_castling_rights(chess.BLACK),
                   board.has_queenside_castling_rights(chess.BLACK)]
     no_progress_count = int(board.halfmove_clock / 2)
+    repetitions = env.repetitions
 
-    return color, total_moves, w_castling, b_castling, no_progress_count
+    return color, total_moves, w_castling, b_castling, no_progress_count, repetitions
 
 
 def learn(model, optimizer, dataloader, env):
     for _, samples in enumerate(dataloader):
         s, pi, z = samples[:, 0], samples[:, 1], samples[:, 2]
-        extra_features = get_additional_feature(s)  # TODO: Make sure this works as intended
+        extra_features = get_additional_features(s)  # TODO: Make sure this works as intended
         planes = board_to_layers(*extra_features)
         p, v = model(torch.FloatTensor(planes))
 

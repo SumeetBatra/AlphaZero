@@ -57,10 +57,10 @@ def train():
 
     for i in range(TOTAL_STEPS):
         if i > 0:
-            self_play(obs, model)
+            self_play(obs, model, env)
             learn(env, model, optimizer, dataloader)
         else:
-            self_play(obs, model)
+            self_play(obs, model, env)
 
 
 if __name__ == '__main__':

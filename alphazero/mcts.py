@@ -12,9 +12,10 @@ TIME_STEPS = 8
 
 
 class MCTS:
-    def __init__(self, state: chess.Board):
+    def __init__(self, state: chess.Board, env):
         self.root = ChessBoard(state, 0)
         self.data = []  # stores (s_t, pi_t, z_t)
+        self.env = env
 
     def _select(self):
         """
@@ -27,13 +28,12 @@ class MCTS:
             node = child
         return node
 
-    @staticmethod
-    def _expand(leaf, model):
+    def _expand(self, leaf, model):
         """
         Send the leaf node to the neural network for evaluation
         :return: value v and the leaf node
         """
-        return leaf.expand(model)
+        return leaf.expand(model, self.env)
 
     @staticmethod
     def _backprop(node, val):
@@ -83,7 +83,7 @@ class MCTS:
 class MCTSNode(ABC):
 
     @abstractmethod
-    def expand(self, model):
+    def expand(self, model, env):
         pass
 
     @abstractmethod
@@ -128,18 +128,17 @@ class ChessBoard(MCTSNode):
         elif res == '1/':  # draw
             return 0.0
 
-    def expand(self, model):
+    def expand(self, model, env):
         if self.is_terminal():
             return self.terminal_reward()
 
         action = self.untried_actions.pop()
-        new_board = self.board.copy().transform(chess.flip_vertical)  # board reoriented based on current player
-        new_board.push(action)
+        new_board, rew, done, _ = env.step(action)
 
         boards = self.board_stack[-7:] + [new_board]
-        color, total_moves, w_castling, b_castling, no_progress_count = learn.get_additional_feature(new_board)
+        color, total_moves, w_castling, b_castling, no_progress_count, repetitions = learn.get_additional_features(new_board, env)
 
-        planes = learn.board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progress_count)
+        planes = learn.board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progress_count, repetitions)
         p_a, val = model(torch.FloatTensor(planes).to(device))  # TODO: This should happen async. on another thread (?) AND should be stack of T boards from T prior timesteps
         child = ChessBoard(new_board, p_a, parent=self)
         self.children[child] = action
