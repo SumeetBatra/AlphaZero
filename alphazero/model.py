@@ -1,5 +1,5 @@
 import torch.nn as nn
-
+import torch.nn.functional as F
 
 class ConvBlock(nn.Module):
     def __init__(self, in_planes, out_planes=256, kernel=3, stride=1):
@@ -24,11 +24,17 @@ class ResBlock(nn.Module):
             nn.Conv2d(out_planes, out_planes, kernel, stride),
             nn.BatchNorm2d(out_planes)
         )
+        self.skip = nn.Identity()
+        if stride != 1 or in_planes != out_planes:
+            self.skip = nn.Sequential(
+                nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=2),
+                nn.BatchNorm2d(out_planes)
+            )
 
     def forward(self, x):
         out = self.block(x)
-        out += x
-        out = nn.ReLU(out)
+        out += self.skip(x)
+        out = F.relu(out)
         return out
 
 

@@ -5,11 +5,14 @@ import torch.nn as nn
 
 import chess_env
 
+from alphazero.mcts import MCTS
+
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TOTAL_STEPS = 7e5
 TIMESTEPS = 8
 M = 13  # From AlphaZero: we have NxN (MT + L) layers. In the paper, M=14 cuz of repetitions=2 instead of 1 for whatever reason
+SIMULATIONS = 800
 
 
 def board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progress_count, repetitions):
@@ -60,13 +63,14 @@ def board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progr
     no_progress_layer = torch.ones(board_shape) * no_progress_count
     layers.append(no_progress_layer)
 
-    return torch.cat(layers).unsqueeze(dim=0).reshape(-1, board_shape[0], board_shape[1])
+    return torch.cat(layers).view(1, -1, board_shape[0], board_shape[1])
 
 
 def get_additional_features(board: chess.Board, env):
     '''
     Get additional features like color, total move count, etc from a board state
     :param board: chess.Board
+    :param env: ChessEnv environment
     :return: additional features
     '''
 
@@ -80,6 +84,14 @@ def get_additional_features(board: chess.Board, env):
     repetitions = env.repetitions
 
     return color, total_moves, w_castling, b_castling, no_progress_count, repetitions
+
+
+def self_play(state, model, env):
+    mcts = MCTS(state, env)
+    for i in range(SIMULATIONS):
+        mcts.search(model)
+    data = mcts.play()
+    return data
 
 
 def learn(model, optimizer, dataloader, env):

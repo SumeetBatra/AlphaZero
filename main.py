@@ -6,8 +6,7 @@ import torch.multiprocessing as multiprocessing
 
 import chess_env
 
-from learn import learn
-from self_play import self_play
+from learn import learn, self_play
 from alphazero.model import AlphaZero
 
 from torch.utils.data.dataloader import DataLoader
