@@ -26,8 +26,11 @@ def test():
     '''
     env = chess_env.ChessEnv()
     board = env.board
-    print(board.legal_moves)
+    print("legal: ", [mv.uci() for mv in board.legal_moves])
     move = chess.Move.from_uci('b2b4')
+    print(move.from_square, move.to_square)
+    str_board = np.array(str(board).split()).reshape(8, 8)
+    print(str_board)
     # board.push(move)
     # print(board.transform(chess.flip_vertical).copy())
     print(board)

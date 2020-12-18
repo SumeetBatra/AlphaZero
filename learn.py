@@ -97,7 +97,7 @@ def self_play(state, model, env):
 def learn(model, optimizer, dataloader, env):
     for _, samples in enumerate(dataloader):
         s, pi, z = samples[:, 0], samples[:, 1], samples[:, 2]
-        extra_features = get_additional_features(s)  # TODO: Make sure this works as intended
+        extra_features = get_additional_features(s, env)  # TODO: Make sure this works as intended
         planes = board_to_layers(*extra_features)
         p, v = model(torch.FloatTensor(planes))
 
