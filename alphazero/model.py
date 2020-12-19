@@ -1,6 +1,8 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+from torch.distributions.categorical import Categorical
+
 class ConvBlock(nn.Module):
     def __init__(self, in_planes, out_planes=256, kernel=3, stride=1):
         super(ConvBlock, self).__init__()
@@ -94,3 +96,7 @@ class AlphaZero(nn.Module):
         actions = self.policy_head(x)
         value = self.value_head(x)
         return actions, value
+
+    @staticmethod
+    def get_action(act_probs):
+        return Categorical(act_probs).sample()

@@ -3,7 +3,6 @@ import chess
 import numpy as np
 
 from gym import spaces
-from chess import svg
 
 #  capitalized = White
 pieces_to_id = {

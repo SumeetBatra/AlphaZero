@@ -5,6 +5,7 @@ import torch.optim as optim
 import torch.multiprocessing as multiprocessing
 
 import chess_env
+import chess_utils
 
 from learn import learn, self_play
 from alphazero.model import AlphaZero
@@ -26,24 +27,30 @@ def test():
     '''
     env = chess_env.ChessEnv()
     board = env.board
-    print("legal: ", [mv.uci() for mv in board.legal_moves])
-    move = chess.Move.from_uci('b2b4')
-    print(move.from_square, move.to_square)
-    str_board = np.array(str(board).split()).reshape(8, 8)
-    print(str_board)
-    # board.push(move)
-    # print(board.transform(chess.flip_vertical).copy())
+    # print("legal: ", [mv.uci() for mv in board.legal_moves])
+    # move = chess.Move.from_uci('b2b4')
+    # print(move.from_square, move.to_square)
+    # str_board = np.array(str(board).split()).reshape(8, 8)
+    # print(str_board)
+    # # board.push(move)
+    # # print(board.transform(chess.flip_vertical).copy())
+    # print(board)
+    # print('\n')
+    # # print(board.copy())
+    # vis1 = str(board).split()
+    # # print("last: ", vis, len(vis))
+    # vis2 = np.array(vis1).reshape(8, 8)
+    # print(vis1)
+    # env.step(move)
+    # print(board)
+    # print('\n')
+    # print(board.transform(chess.flip_vertical))
+
+    board.clear_board()
+    board.set_piece_at(chess.A7, chess.Piece(chess.PAWN, chess.WHITE))
+    move = chess.Move.from_uci('a7a8q')
+    board.push(move)
     print(board)
-    print('\n')
-    # print(board.copy())
-    vis1 = str(board).split()
-    # print("last: ", vis, len(vis))
-    vis2 = np.array(vis1).reshape(8, 8)
-    print(vis1)
-    env.step(move)
-    print(board)
-    print('\n')
-    print(board.transform(chess.flip_vertical))
 
 
 def train():

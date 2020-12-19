@@ -1,4 +1,5 @@
 import numpy as np
+import chess
 
 uci_to_numerical = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8}
 
@@ -12,11 +13,22 @@ kdelta_to_planeidx = {(2, 1): 56, (1, 2): 57, (-1, 2): 58, (-2, 1): 59,
 pdelta_to_numerical = {(1, 1): 1, (0, 1): 2, (-1, 1): 3}
 
 # 3 possible underpromotions (knight, bishop, rook) to a numerical value
-underpromotion_to_numerical = {'k': 1, 'K': 1, 'b': 2, 'B': 2, 'r': 3, 'R': 3}
+underpromotion_to_numerical = {'k': 1, 'b': 2, 'r': 3}
+
+# dicts that go in the opposite direction
+numerical_to_uci = {1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e', 6: 'f', 7: 'g', 8: 'h'}
+
+numerical_to_dir = {1: 'N', 2: 'NE', 3: 'E', 4: 'SE', 5: 'S', 6: 'SW', 7: 'W', 8: 'NW'}
+
+planeidx_to_kdelta = {56: (2, 1), 57: (1, 2), 58: (-1, 2), 59: (-2, 1),
+                      60: (-2, -1), 61: (-1, -2), 62: (1, -2), 63: (2, -1)}
+
+numerical_to_underpromotion = {1: 'k', 2: 'b', 3: 'r'}
+
+numerical_to_pdelta = {1: (1, 1), 2: (0, 1), 3: (-1, 1)}
 
 
-
-def encode_action(str_board, legal_move):
+def encode_actions(str_board, legal_move):
     '''
     encode a legal move into a representation that matches the probs output of the policy head
     :param str_board: (8,8) string representation of chess.Board
@@ -32,7 +44,7 @@ def encode_action(str_board, legal_move):
     if len(legal_move) == 5 and legal_move[-1] not in ['q', 'Q']:
         pawn_underpromote = True
     if pawn_underpromote:
-        promote_idx = underpromotion_to_numerical[legal_move[-1]] * pdelta_to_numerical[(dx, dy)] - 1
+        promote_idx = ((underpromotion_to_numerical[legal_move[-1]] - 1) * 3 + pdelta_to_numerical[(dx, dy)]) - 1
         stack_idx = 64 + promote_idx
         return init_pos[0], init_pos[1], stack_idx
 
@@ -66,6 +78,56 @@ def encode_action(str_board, legal_move):
     return init_pos[0], init_pos[1], stack_idx
 
 
+def decode_action(action):
+    # TODO: Test to make sure this works
+    action_space = np.zeros(4672)
+    action_space[action] = 1
+    action_space.reshape((8, 8, 73))
+    i, j, k = np.argwhere(action_space)
+    start_row = numerical_to_uci[i+1]
+    start_col = str(j+1)
+    start_pos = start_row + start_col
+    if k <= 55:  # Queen move in compass dir
+        dir = numerical_to_dir[(k // 8) + 1]
+        num_squares = k % 7
+        if dir == 'N':
+            dx, dy = 0, num_squares
+        elif dir == 'S':
+            dx, dy = 0, -num_squares
+        elif dir == 'E':
+            dx, dy = num_squares, 0
+        elif dir == 'W':
+            dx, dy = -num_squares, 0
+        elif dir == 'NE':
+            dx, dy = num_squares, num_squares
+        elif dir == 'NW':
+            dx, dy = -num_squares, num_squares
+        elif dir == 'SE':
+            dx, dy = num_squares, -num_squares
+        else:
+            dx, dy = -num_squares, -num_squares
+
+        end_row = chr(ord(start_row) + dx)
+        end_col = str(start_col + dy)
+        end_pos = end_row + end_col
+        move = chess.Move.from_uci(start_pos + end_pos)
+    elif 56 <= k <= 63:  # knight move
+        dx, dy = planeidx_to_kdelta[k]
+        end_row = chr(ord(start_row) + dx)
+        end_col = str(start_col + dy)
+        end_pos = end_row + end_col
+        move = chess.Move.from_uci(start_pos + end_pos)
+    else:  # pawn underpromotion
+        underpromote = numerical_to_underpromotion[((k - 64) // 3) + 1]
+        dx, dy = numerical_to_pdelta[((k - 64) % 3) + 1]
+        end_row = chr(ord(start_row) + dx)
+        end_col = str(start_col + dy)
+        end_pos = end_row + end_col
+        move = chess.Move.from_uci(start_pos + end_pos + underpromote)
+
+    return move
+
+
 def mask_illegal_actions(state, p_raw):
     # TODO: Test to make sure this works correctly
     legal_moves = [mv.uci() for mv in state.legal_moves]
@@ -73,7 +135,7 @@ def mask_illegal_actions(state, p_raw):
     p_raw = p_raw.reshape((8, 8, 73))
     for legal_move in legal_moves:
         str_board = np.array(str(state).split()).reshape(8, 8)
-        i, j, k = encode_action(str_board, legal_move.uci())
+        i, j, k = encode_actions(str_board, legal_move.uci())
         mask[i, j, k] = 1
 
     p_masked = p_raw[mask == 0] = 0
