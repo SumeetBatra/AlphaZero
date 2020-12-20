@@ -1,5 +1,6 @@
 import numpy as np
 import chess
+import torch
 
 uci_to_numerical = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8}
 
@@ -13,7 +14,7 @@ kdelta_to_planeidx = {(2, 1): 56, (1, 2): 57, (-1, 2): 58, (-2, 1): 59,
 pdelta_to_numerical = {(1, 1): 1, (0, 1): 2, (-1, 1): 3}
 
 # 3 possible underpromotions (knight, bishop, rook) to a numerical value
-underpromotion_to_numerical = {'k': 1, 'b': 2, 'r': 3}
+underpromotion_to_numerical = {'n': 1, 'b': 2, 'r': 3}
 
 # dicts that go in the opposite direction
 numerical_to_uci = {1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e', 6: 'f', 7: 'g', 8: 'h'}
@@ -23,7 +24,7 @@ numerical_to_dir = {1: 'N', 2: 'NE', 3: 'E', 4: 'SE', 5: 'S', 6: 'SW', 7: 'W', 8
 planeidx_to_kdelta = {56: (2, 1), 57: (1, 2), 58: (-1, 2), 59: (-2, 1),
                       60: (-2, -1), 61: (-1, -2), 62: (1, -2), 63: (2, -1)}
 
-numerical_to_underpromotion = {1: 'k', 2: 'b', 3: 'r'}
+numerical_to_underpromotion = {1: 'n', 2: 'b', 3: 'r'}
 
 numerical_to_pdelta = {1: (1, 1), 2: (0, 1), 3: (-1, 1)}
 
@@ -35,8 +36,8 @@ def encode_actions(str_board, legal_move):
     :param legal_move: string representation of a legal move
     :return: (i,j) pos of the piece to pick up and plane_idx (k)
     '''
-    init_pos = np.array([uci_to_numerical[legal_move[0]], int(legal_move[1])])
-    final_pos = np.array([uci_to_numerical[legal_move[2]], int(legal_move[3])])
+    init_pos = np.array([uci_to_numerical[legal_move[0]]-1, int(legal_move[1])-1])
+    final_pos = np.array([uci_to_numerical[legal_move[2]]-1, int(legal_move[3])-1])
     dx, dy = final_pos - init_pos
     num_squares = dx or dy
 
@@ -48,7 +49,7 @@ def encode_actions(str_board, legal_move):
         stack_idx = 64 + promote_idx
         return init_pos[0], init_pos[1], stack_idx
 
-    if str_board[init_pos] not in ['n', 'N']:  # piece to move is not a knight
+    if str_board[-init_pos[1]-1, init_pos[0]] not in ['n', 'N']:  # piece to move is not a knight. Also (row, col) = (dy, dx)
         direction = None
         if dx and not dy:
             if dx > 0:
@@ -135,8 +136,8 @@ def mask_illegal_actions(state, p_raw):
     p_raw = p_raw.reshape((8, 8, 73))
     for legal_move in legal_moves:
         str_board = np.array(str(state).split()).reshape(8, 8)
-        i, j, k = encode_actions(str_board, legal_move.uci())
+        i, j, k = encode_actions(str_board, legal_move)
         mask[i, j, k] = 1
 
-    p_masked = p_raw[mask == 0] = 0
+    p_masked = p_raw * torch.Tensor(mask).detach()
     return p_masked

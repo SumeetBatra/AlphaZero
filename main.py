@@ -5,9 +5,9 @@ import torch.optim as optim
 import torch.multiprocessing as multiprocessing
 
 import chess_env
-import chess_utils
 
-from learn import learn, self_play
+from learn import *
+from chess_utils import *
 from alphazero.model import AlphaZero
 
 from torch.utils.data.dataloader import DataLoader
@@ -45,12 +45,17 @@ def test():
     # print(board)
     # print('\n')
     # print(board.transform(chess.flip_vertical))
-
+    model = AlphaZero(env.n_planes).to(device)
     board.clear_board()
     board.set_piece_at(chess.A7, chess.Piece(chess.PAWN, chess.WHITE))
-    move = chess.Move.from_uci('a7a8q')
-    board.push(move)
+    # move = chess.Move.from_uci('a7a8q')
+    # board.push(move)
     print(board)
+    features = get_additional_features(board, env)
+    layers = board_to_layers([board], *features)
+    act_probs, val = model(layers)
+    filtered_acts = mask_illegal_actions(board, act_probs)
+
 
 
 def train():
@@ -74,4 +79,4 @@ def train():
 
 if __name__ == '__main__':
     test()
-    train()
+    # train()
