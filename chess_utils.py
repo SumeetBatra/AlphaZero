@@ -11,7 +11,8 @@ kdelta_to_planeidx = {(2, 1): 56, (1, 2): 57, (-1, 2): 58, (-2, 1): 59,
                       (-2, -1): 60, (-1, -2): 61, (1, -2): 62, (2, -1): 63}
 
 # 3 possible pawn moves (dx, dy) to a numerical value
-pdelta_to_numerical = {(1, 1): 1, (0, 1): 2, (-1, 1): 3}
+pdelta_to_numerical = {(1, 1): 1, (0, 1): 2, (-1, 1): 3,
+                       (-1, -1): 1, (0, -1): 2, (1, -1): 3}  # black pawn underpromotion should mirror white's
 
 # 3 possible underpromotions (knight, bishop, rook) to a numerical value
 underpromotion_to_numerical = {'n': 1, 'b': 2, 'r': 3}
@@ -39,7 +40,7 @@ def encode_actions(str_board, legal_move):
     init_pos = np.array([uci_to_numerical[legal_move[0]]-1, int(legal_move[1])-1])
     final_pos = np.array([uci_to_numerical[legal_move[2]]-1, int(legal_move[3])-1])
     dx, dy = final_pos - init_pos
-    num_squares = dx or dy
+    num_squares = abs(dx) or abs(dy)
 
     pawn_underpromote = False
     if len(legal_move) == 5 and legal_move[-1] not in ['q', 'Q']:
@@ -71,7 +72,7 @@ def encode_actions(str_board, legal_move):
             else:
                 direction = 'SW'
         dir = dir_to_numerical[direction]
-        stack_idx = (dir * num_squares) - 1
+        stack_idx = ((num_squares - 1) * 8 + dir) - 1
     else:
         # piece to move is a knight
         stack_idx = kdelta_to_planeidx[(dx, dy)]
@@ -79,18 +80,20 @@ def encode_actions(str_board, legal_move):
     return init_pos[0], init_pos[1], stack_idx
 
 
-def decode_action(action):
+def decode_action(action, board):
     # TODO: Test to make sure this works
     action_space = np.zeros(4672)
     action_space[action] = 1
-    action_space.reshape((8, 8, 73))
-    i, j, k = np.argwhere(action_space)
+    action_space = action_space.reshape((8, 8, 73))
+    i, j, k = np.argwhere(action_space).squeeze()
+    numerical_board = np.array(str(board).split()).reshape(8,  8)
+    piece_type = numerical_board[-j-1, i]  # (row, col) = (dy, dx)
     start_row = numerical_to_uci[i+1]
-    start_col = str(j+1)
-    start_pos = start_row + start_col
+    start_col = j+1
+    start_pos = start_row + str(start_col)
     if k <= 55:  # Queen move in compass dir
-        dir = numerical_to_dir[(k // 8) + 1]
-        num_squares = k % 7
+        dir = numerical_to_dir[(k % 8) + 1]
+        num_squares = (k // 8) + 1
         if dir == 'N':
             dx, dy = 0, num_squares
         elif dir == 'S':
@@ -111,6 +114,8 @@ def decode_action(action):
         end_row = chr(ord(start_row) + dx)
         end_col = str(start_col + dy)
         end_pos = end_row + end_col
+        if piece_type in ['p', 'P'] and int(end_pos[-1]) in [1, 8]:  # pawn promotion to queen
+            end_pos += 'q'
         move = chess.Move.from_uci(start_pos + end_pos)
     elif 56 <= k <= 63:  # knight move
         dx, dy = planeidx_to_kdelta[k]
@@ -121,6 +126,8 @@ def decode_action(action):
     else:  # pawn underpromotion
         underpromote = numerical_to_underpromotion[((k - 64) // 3) + 1]
         dx, dy = numerical_to_pdelta[((k - 64) % 3) + 1]
+        if board.turn == chess.BLACK:
+            dx, dy = -dx, -dy
         end_row = chr(ord(start_row) + dx)
         end_col = str(start_col + dy)
         end_pos = end_row + end_col
@@ -137,6 +144,11 @@ def mask_illegal_actions(state, p_raw):
     for legal_move in legal_moves:
         str_board = np.array(str(state).split()).reshape(8, 8)
         i, j, k = encode_actions(str_board, legal_move)
+        # test = np.zeros((8, 8, 73))
+        # test[i, j, k] = 1
+        # test = test.reshape(-1)
+        # test_act = decode_action(np.argwhere(test), state)
+        # assert(str(test_act) == legal_move)
         mask[i, j, k] = 1
 
     p_masked = p_raw * torch.Tensor(mask).detach()

@@ -1,3 +1,5 @@
+import time
+import random
 import chess
 import torch
 import numpy as np
@@ -11,6 +13,7 @@ from chess_utils import *
 from alphazero.model import AlphaZero
 
 from torch.utils.data.dataloader import DataLoader
+from torch.distributions.categorical import Categorical
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -18,7 +21,6 @@ TOTAL_STEPS = int(7e5)
 USE_TENSORBOARD = False
 BATCH_SIZE = 32
 L2_REG = 1e-4
-
 
 
 def test():
@@ -54,8 +56,36 @@ def test():
     features = get_additional_features(board, env)
     layers = board_to_layers([board], *features)
     act_probs, val = model(layers)
-    filtered_acts = mask_illegal_actions(board, act_probs)
+    filtered_act_probs = mask_illegal_actions(board, act_probs).view(-1)
+    filtered_acts = torch.nonzero(filtered_act_probs)
+    acts = []
+    for act in filtered_acts:
+        acts.append(decode_action(act, board))
+    print(all(e in acts for e in list(board.legal_moves)))
 
+
+def play_random_game(model, board, env):
+    t = 0
+    while not board.is_game_over():
+        print(t)
+        features = get_additional_features(board, env)
+        layers = board_to_layers([board], *features)
+        act_probs, val = model(layers)
+        filtered_act_probs = mask_illegal_actions(board, act_probs).view(-1)
+        nonzero_filtered_act_probs = torch.nonzero(filtered_act_probs).detach().numpy()
+        filtered_acts = []
+        for act in nonzero_filtered_act_probs:
+            decoded = decode_action(int(act), board)
+            filtered_acts.append(decoded)
+        action = str(random_action(filtered_acts, list(board.legal_moves)))
+        move = chess.Move.from_uci(action)
+        board.push(move)
+        t += 1
+
+
+def random_action(filtered_acts, legal_moves):
+    assert all(e in filtered_acts for e in legal_moves), f'Filtered actions: {filtered_acts} and legal moves: {legal_moves} are not the same :('
+    return np.random.choice(filtered_acts)
 
 
 def train():
@@ -78,5 +108,9 @@ def train():
 
 
 if __name__ == '__main__':
-    test()
+    # test()
     # train()
+    env = chess_env.ChessEnv()
+    board = env.board
+    model = AlphaZero(env.n_planes).to(device)
+    play_random_game(model, board, env)
