@@ -55,7 +55,7 @@ class ChessEnv(gym.Env):
             return True
         return False
 
-    def step(self, action: chess.Move):
+    def step(self, action):
         '''
         :param action: chess.Move format
         :return: obs, rew, dones, info

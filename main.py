@@ -109,8 +109,8 @@ def train():
 
 if __name__ == '__main__':
     # test()
-    # train()
-    env = chess_env.ChessEnv()
-    board = env.board
-    model = AlphaZero(env.n_planes).to(device)
-    play_random_game(model, board, env)
+    train()
+    # env = chess_env.ChessEnv()
+    # board = env.board
+    # model = AlphaZero(env.n_planes).to(device)
+    # play_random_game(model, board, env)

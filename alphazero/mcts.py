@@ -6,6 +6,7 @@ import learn
 
 from abc import ABC, abstractmethod
 from torch.distributions.categorical import Categorical
+from chess_utils import *
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TIME_STEPS = 8
@@ -63,7 +64,8 @@ class MCTS:
         return node.children[idx]
 
 
-    def search(self, model):
+    def search(self, model, env):
+        _ = env.reset()
         leaf = self._select()
         val = self._expand(leaf, model)
         self._backprop(leaf, val)
@@ -139,8 +141,11 @@ class ChessBoard(MCTSNode):
         color, total_moves, w_castling, b_castling, no_progress_count, repetitions = learn.get_additional_features(new_board, env)
 
         planes = learn.board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progress_count, repetitions)
-        p_a, val = model(torch.FloatTensor(planes).to(device))  # TODO: This should happen async. on another thread (?) AND should be stack of T boards from T prior timesteps
-        child = ChessBoard(new_board, p_a, parent=self)
+        p_acts, val = model(torch.FloatTensor(planes).to(device))  # TODO: This should happen async. on another thread (?) AND should be stack of T boards from T prior timesteps
+        str_board = np.array(str(self.board).split()).reshape(8, 8)
+        encoded_action = encode_actions(str_board, action.uci(), flattened=True)
+        p_act = p_acts.squeeze()[encoded_action]
+        child = ChessBoard(new_board, p_act, parent=self)
         self.children[child] = action
         return val
 

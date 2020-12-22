@@ -89,7 +89,7 @@ def get_additional_features(board: chess.Board, env):
 def self_play(state, model, env):
     mcts = MCTS(state, env)
     for i in range(SIMULATIONS):
-        mcts.search(model)
+        mcts.search(model, env)
     data = mcts.play()
     return data
 

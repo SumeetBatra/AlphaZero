@@ -30,7 +30,7 @@ numerical_to_underpromotion = {1: 'n', 2: 'b', 3: 'r'}
 numerical_to_pdelta = {1: (1, 1), 2: (0, 1), 3: (-1, 1)}
 
 
-def encode_actions(str_board, legal_move):
+def encode_actions(str_board, legal_move, flattened=False):
     '''
     encode a legal move into a representation that matches the probs output of the policy head
     :param str_board: (8,8) string representation of chess.Board
@@ -77,6 +77,8 @@ def encode_actions(str_board, legal_move):
         # piece to move is a knight
         stack_idx = kdelta_to_planeidx[(dx, dy)]
 
+    if flattened:
+        return init_pos[0] * 8 + init_pos[1] * 8 + stack_idx * 73
     return init_pos[0], init_pos[1], stack_idx
 
 
