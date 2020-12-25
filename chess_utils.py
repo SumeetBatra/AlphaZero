@@ -2,6 +2,8 @@ import numpy as np
 import chess
 import torch
 
+from torch.utils.data import Dataset
+
 uci_to_numerical = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8}
 
 dir_to_numerical = {'N': 1, 'NE': 2, 'E': 3, 'SE': 4, 'S': 5, 'SW': 6, 'W': 7, 'NW': 8}
@@ -30,10 +32,24 @@ numerical_to_underpromotion = {1: 'n', 2: 'b', 3: 'r'}
 numerical_to_pdelta = {1: (1, 1), 2: (0, 1), 3: (-1, 1)}
 
 
-def encode_actions(str_board, legal_move, flattened=False):
+class ChessDataset(Dataset):
+    def __init__(self, chess_data):
+        '''
+        :param chess_data: (N x 3) stack of (s, pi, z) data collected from self play
+        '''
+        self.data = chess_data
+
+    def __len__(self):
+        return self.data.shape[0]
+
+    def __getitem__(self, item):
+        return self.data[item]
+
+
+def encode_action(str_board, legal_move, flattened=False):
     '''
     encode a legal move into a representation that matches the probs output of the policy head
-    :param str_board: (8,8) string representation of chess.Board
+    :param str_board: numpy array (8,8) string representation of chess.Board
     :param legal_move: string representation of a legal move
     :return: (i,j) pos of the piece to pick up and plane_idx (k)
     '''
@@ -145,7 +161,7 @@ def mask_illegal_actions(state, p_raw):
     p_raw = p_raw.reshape((8, 8, 73))
     for legal_move in legal_moves:
         str_board = np.array(str(state).split()).reshape(8, 8)
-        i, j, k = encode_actions(str_board, legal_move)
+        i, j, k = encode_action(str_board, legal_move)
         # test = np.zeros((8, 8, 73))
         # test[i, j, k] = 1
         # test = test.reshape(-1)

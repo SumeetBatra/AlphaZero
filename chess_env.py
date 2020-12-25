@@ -40,20 +40,20 @@ class ChessEnv(gym.Env):
     def repetitions(self):
         return self._max_repetitions
 
+    @property
+    def is_terminal(self):
+        return self.board.is_game_over()
+
     def encode_state(self, board: chess.Board):
         '''
         Encode the board to check for repetitions
         :param board: chess.Board
-        :return: True if repetitions >=3 (implies threefold repetition can be claimed) else False
         '''
         encoding = board.fen()
         self._encoded_state_counter[encoding] = self._encoded_state_counter.get(encoding, 0) + 1
 
         if self._encoded_state_counter[encoding] > self._max_repetitions:
             self._max_repetitions = self._encoded_state_counter[encoding]
-        if self._max_repetitions >= 3:
-            return True
-        return False
 
     def step(self, action):
         '''
@@ -68,13 +68,11 @@ class ChessEnv(gym.Env):
             )
 
         self.board.push(action)
+        self.encode_state(self.board)
 
         obs = self.board.copy()
         if self.board.turn == chess.BLACK:
             obs = self.board.transform(chess.flip_vertical).copy()
-        # obs = str(obs).split()
-        # obs = [pieces_to_id[s] for s in obs]
-        # obs = np.array(obs).reshape(self.observation_space.shape)
 
         rew = self.board.result()
         done = self.board.is_game_over()

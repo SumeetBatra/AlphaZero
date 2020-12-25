@@ -12,7 +12,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TOTAL_STEPS = 7e5
 TIMESTEPS = 8
 M = 13  # From AlphaZero: we have NxN (MT + L) layers. In the paper, M=14 cuz of repetitions=2 instead of 1 for whatever reason
-SIMULATIONS = 800
+SIMULATIONS = 3
 
 
 def board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progress_count, repetitions):
@@ -90,6 +90,7 @@ def self_play(state, model, env):
     mcts = MCTS(state, env)
     for i in range(SIMULATIONS):
         mcts.search(model, env)
+        print(f'Finished simulation {i}')
     data = mcts.play()
     return data
 
@@ -97,13 +98,13 @@ def self_play(state, model, env):
 def learn(model, optimizer, dataloader, env):
     for _, samples in enumerate(dataloader):
         s, pi, z = samples[:, 0], samples[:, 1], samples[:, 2]
-        extra_features = get_additional_features(s, env)  # TODO: Make sure this works as intended
+        extra_features = get_additional_features(s, env)
         planes = board_to_layers(*extra_features)
         p, v = model(torch.FloatTensor(planes))
 
         optimizer.zero_grad()
         value_loss = nn.MSELoss()(v, z)
-        policy_loss = nn.CrossEntropyLoss()(p, pi)
+        policy_loss = -torch.sum(p * pi)
         loss = value_loss + policy_loss
         loss.backward()
         optimizer.step()

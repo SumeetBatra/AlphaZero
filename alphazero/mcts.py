@@ -20,14 +20,22 @@ class MCTS:
 
     def _select(self):
         """
-        Rollout a game using current statistics
+        Rollout a game using current statistics. Store new unvisited leaf on the tree
         :return: Leaf node
         """
         node = self.root
-        while node.children:
-            child = node.take_best_action()
+        acts = []
+        while True:
+            child, taken_act = node.take_best_action()
+            self.env.step(chess.Move.from_uci(taken_act))
+            acts.append(taken_act)
+            if child.is_terminal():
+                return child, acts
+            if not child.visited:
+                child.visited = True
+                node.children[taken_act] = child
+                return child, acts
             node = child
-        return node
 
     def _expand(self, leaf, model):
         """
@@ -37,11 +45,13 @@ class MCTS:
         return leaf.expand(model, self.env)
 
     @staticmethod
-    def _backprop(node, val):
-        while node:
-            node.W += val
-            node.N += 1
-            node.Q = node.W / node.N
+    def _backprop(node, val, acts):
+        for act in list(reversed(acts)):
+            n, w, _, p = node.parent.actions[act]
+            n += 1
+            w += val
+            q = w / n
+            node.parent.actions[act] = (n, w, q, p)
             node = node.parent
 
     def _sample(self, node, temp):
@@ -50,7 +60,26 @@ class MCTS:
         :return: child node based on the move that was sampled
         '''
         logits = []
-        for child in node.children:
+        actions, stats = list(node.actions.keys()), list(node.actions.values())
+        n_total = sum([n for n, _, _, _ in node.actions.values()])
+        for stat in stats:
+            n, w, q, p = stat
+            logits.appends(n / n_total)
+        if temp == 0:
+            # greedy select the best action
+            max_idx = np.argmax(logits)
+            logits = np.zeros(len(logits))
+            logits[max_idx] = 1.0
+        else:
+            logits = np.power(np.array(logits), 1 / temp)
+        self.data.append([node, Categorical(torch.Tensor(logits)), None])  # we don't know the reward yet - will be retroactively updated
+        action = np.random.choice(actions, p=logits)
+        return self.children[action]
+
+
+        logits = []
+        moves, children = list(node.children.keys()), list(node.children.values())
+        for child in children:
             logits.append(child.N / node.N_total)
         if temp == 0:
             # greedy select the best action
@@ -58,28 +87,26 @@ class MCTS:
             logits = np.zeros(len(logits))
             logits[max_idx] = 1.0
         else:
-            logits = np.pow(np.array(logits), 1 / temp)
+            logits = np.power(np.array(logits), 1 / temp)
         self.data.append([node, Categorical(torch.Tensor(logits)), None])  # we don't know the reward yet - will be retroactively updated
-        idx = np.random.choice(len(node.children), p=logits)
-        return node.children[idx]
-
+        child = np.random.choice(children, p=logits)
+        return child
 
     def search(self, model, env):
         _ = env.reset()
-        leaf = self._select()
+        leaf, acts = self._select()
         val = self._expand(leaf, model)
-        self._backprop(leaf, val)
+        self._backprop(leaf, val, acts)
 
     def play(self):
         node = self.root
         while not node.is_terminal():
             node = self._sample(node, temp=1.0)
-        reward = node.terminal_reward()  # TODO: add terminal state as data entry??
+        reward = node.terminal_reward()
         # assign rewards
         for entry in self.data:
             entry[-1] = reward if node.color == entry[0].color else -reward
         return self.data
-
 
 
 class MCTSNode(ABC):
@@ -103,23 +130,21 @@ class MCTSNode(ABC):
 
 
 class ChessBoard(MCTSNode):
-    def __init__(self, board, p_a, parent=None):
+    def __init__(self, board, parent=None):
         super(ChessBoard).__init__()
         self.board = board
         self.board_stack = [board]
         self.color = board.turn
-        self.children = dict()  # {chess.move: ChessBoard Node} pair
         self.parent = parent
-        self.untried_actions = list(self.board.legal_moves)
-        self.N_total = 0  # sum of visit counts of all children
-        # These are actually stats for the edge that led to this child node
-        self.N = 0  # visit count to this node from parent
-        self.W = 0
-        self.Q = 0
-        self.P = p_a
+        self.legal_moves = list(self.board.legal_moves)
+        self.children = dict()
+        self.N_total = 0
+        self.visited = False
 
         if self.parent:
             self.board_stack.extend(self.parent.board_stack)
+
+        self.actions = dict()
 
     def terminal_reward(self):
         res = self.board.result()[0:2]  # can be '1-0', '0-1', or '1/2-1/2'
@@ -130,45 +155,43 @@ class ChessBoard(MCTSNode):
         elif res == '1/':  # draw
             return 0.0
 
+    def action_value(self, model, env):
+        features = learn.get_additional_features(self.board, env)
+        boards = self.board_stack[-7:] + [self.board]
+        planes = learn.board_to_layers(boards, *features)
+        p_acts, val = model(torch.FloatTensor(planes).to(device))
+        return p_acts, val
+
     def expand(self, model, env):
         if self.is_terminal():
             return self.terminal_reward()
-
-        action = self.untried_actions.pop()
-        new_board, rew, done, _ = env.step(action)
-
-        boards = self.board_stack[-7:] + [new_board]
-        color, total_moves, w_castling, b_castling, no_progress_count, repetitions = learn.get_additional_features(new_board, env)
-
-        planes = learn.board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progress_count, repetitions)
-        p_acts, val = model(torch.FloatTensor(planes).to(device))  # TODO: This should happen async. on another thread (?) AND should be stack of T boards from T prior timesteps
-        str_board = np.array(str(self.board).split()).reshape(8, 8)
-        encoded_action = encode_actions(str_board, action.uci(), flattened=True)
-        p_act = p_acts.squeeze()[encoded_action]
-        child = ChessBoard(new_board, p_act, parent=self)
-        self.children[child] = action
+        p_acts, val = self.action_value(model, env)
+        for move in self.legal_moves:
+            a_idx = encode_action(np.array(str(self.board)).reshape(8, 8), move.uci(), flattened=True)
+            p_a = p_acts[a_idx]
+            self.actions[move.uci()] = (0, 0, 0, p_a)
         return val
 
     def take_best_action(self):
-        if not self.children:
+        if self.is_terminal():
             return self
-        best_child = None
-        best_score = -1
-        for child in self.children.keys():
-            score = self.puct(child.N, child.P, child.Q)
-            if score > best_score:
-                best_child = child
-                best_score = score
-        self.N_total += 1  # increment total visit count to children
-        return best_child
-
-    def is_terminal(self):
-        return self.board.is_game_over()
+        assert len(self.actions) != 0, "This node has not been expanded yet"
+        best_act = None
+        max_score = -1
+        for act, stats in self.actions.items():
+            n, w, q, p = stats
+            score = self.puct(n, p, q)
+            if score > max_score:
+                max_score = score
+                best_act = act
+        child = self.children.get(best_act, ChessBoard(self.board.copy().push(chess.Move.from_uci(best_act)), self))
+        return child, best_act
 
     def puct(self, n, p, q, coeff=1.0):
         Q = q
         U = coeff * p * np.sqrt(self.N_total) / (1 + n)
         return Q + U
 
-
+    def is_terminal(self):
+        return self.board.is_game_over()
 

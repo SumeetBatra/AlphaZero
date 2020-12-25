@@ -96,15 +96,17 @@ def train():
     optimizer = optim.Adam(model.parameters(), lr=0.2, weight_decay=L2_REG)
 
     obs = env.reset()
-    train_data = []
-    dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
 
     for i in range(TOTAL_STEPS):
         if i > 0:
-            self_play(obs, model, env)
+            data = self_play(obs, model, env)
+            train_data = ChessDataset(data)
+            dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
             learn(env, model, optimizer, dataloader)
         else:
-            self_play(obs, model, env)
+            data = self_play(obs, model, env)
+            train_data = ChessDataset(data)
+            dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
 
 
 if __name__ == '__main__':
