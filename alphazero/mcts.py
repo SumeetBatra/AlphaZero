@@ -13,10 +13,13 @@ TIME_STEPS = 8
 
 
 class MCTS:
-    def __init__(self, state: chess.Board, env):
+    def __init__(self, state: chess.Board, env, model):
         self.root = ChessBoard(state, 0)
         self.data = []  # stores (s_t, pi_t, z_t)
         self.env = env
+        self.model = model
+
+        self.root.expand(model, env)
 
     def _select(self):
         """
@@ -37,12 +40,12 @@ class MCTS:
                 return child, acts
             node = child
 
-    def _expand(self, leaf, model):
+    def _expand(self, leaf):
         """
         Send the leaf node to the neural network for evaluation
         :return: value v and the leaf node
         """
-        return leaf.expand(model, self.env)
+        return leaf.expand(self.model, self.env)
 
     @staticmethod
     def _backprop(node, val, acts):
@@ -61,10 +64,10 @@ class MCTS:
         '''
         logits = []
         actions, stats = list(node.actions.keys()), list(node.actions.values())
-        n_total = sum([n for n, _, _, _ in node.actions.values()])
+        n_total = sum(list([n for n, _, _, _ in node.actions.values()]))
         for stat in stats:
             n, w, q, p = stat
-            logits.appends(n / n_total)
+            logits.append(n / n_total)
         if temp == 0:
             # greedy select the best action
             max_idx = np.argmax(logits)
@@ -74,7 +77,7 @@ class MCTS:
             logits = np.power(np.array(logits), 1 / temp)
         self.data.append([node, Categorical(torch.Tensor(logits)), None])  # we don't know the reward yet - will be retroactively updated
         action = np.random.choice(actions, p=logits)
-        return self.children[action]
+        return node.children[action]
 
 
         logits = []
@@ -92,10 +95,10 @@ class MCTS:
         child = np.random.choice(children, p=logits)
         return child
 
-    def search(self, model, env):
-        _ = env.reset()
+    def search(self):
+        _ = self.env.reset()
         leaf, acts = self._select()
-        val = self._expand(leaf, model)
+        val = self._expand(leaf)
         self._backprop(leaf, val, acts)
 
     def play(self):
@@ -167,8 +170,8 @@ class ChessBoard(MCTSNode):
             return self.terminal_reward()
         p_acts, val = self.action_value(model, env)
         for move in self.legal_moves:
-            a_idx = encode_action(np.array(str(self.board)).reshape(8, 8), move.uci(), flattened=True)
-            p_a = p_acts[a_idx]
+            a_idx = encode_action(np.array(str(self.board).split()).reshape(8, 8), move.uci(), flattened=True)
+            p_a = p_acts.squeeze()[a_idx]
             self.actions[move.uci()] = (0, 0, 0, p_a)
         return val
 
@@ -184,7 +187,9 @@ class ChessBoard(MCTSNode):
             if score > max_score:
                 max_score = score
                 best_act = act
-        child = self.children.get(best_act, ChessBoard(self.board.copy().push(chess.Move.from_uci(best_act)), self))
+        new_board = self.board.copy()
+        new_board.push(chess.Move.from_uci(best_act))
+        child = self.children.get(best_act, ChessBoard(new_board, self))
         return child, best_act
 
     def puct(self, n, p, q, coeff=1.0):

@@ -94,7 +94,7 @@ def encode_action(str_board, legal_move, flattened=False):
         stack_idx = kdelta_to_planeidx[(dx, dy)]
 
     if flattened:
-        return init_pos[0] * 8 + init_pos[1] * 8 + stack_idx * 73
+        return (init_pos[0] + 1) * (init_pos[1] + 1) * (stack_idx + 1) - 1
     return init_pos[0], init_pos[1], stack_idx
 
 

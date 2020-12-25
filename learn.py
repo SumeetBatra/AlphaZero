@@ -12,7 +12,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TOTAL_STEPS = 7e5
 TIMESTEPS = 8
 M = 13  # From AlphaZero: we have NxN (MT + L) layers. In the paper, M=14 cuz of repetitions=2 instead of 1 for whatever reason
-SIMULATIONS = 3
+SIMULATIONS = 800
 
 
 def board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progress_count, repetitions):
@@ -87,9 +87,9 @@ def get_additional_features(board: chess.Board, env):
 
 
 def self_play(state, model, env):
-    mcts = MCTS(state, env)
+    mcts = MCTS(state, env, model)
     for i in range(SIMULATIONS):
-        mcts.search(model, env)
+        mcts.search()
         print(f'Finished simulation {i}')
     data = mcts.play()
     return data
