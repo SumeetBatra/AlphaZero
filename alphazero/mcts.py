@@ -13,7 +13,7 @@ class MCTS:
         self.root = root
         self.model = model
         self._encoded_state_counter = dict()
-        self.root.expand(model)
+        self.root.expand(model, root=True)
 
     def _encode_state(self, board: chess.Board):
         '''
@@ -105,7 +105,7 @@ class MCTS:
 class MCTSNode(ABC):
 
     @abstractmethod
-    def expand(self, model):
+    def expand(self, model, root=False):
         pass
 
     @abstractmethod
@@ -155,10 +155,14 @@ class ChessBoard(MCTSNode):
         p_acts, val = model(torch.FloatTensor(planes).to(device))
         return p_acts, val
 
-    def expand(self, model):
+    def expand(self, model, root=False):
         if self.is_terminal():
             return self.terminal_reward()
         p_acts, val = self.action_value(model)
+        if root:  # add dirichlet noise to root node for exploration
+            eps = 0.25
+            noise = torch.distributions.dirichlet.Dirichlet(torch.Tensor([0.3])).sample(p_acts.shape)
+            p_acts = (1-eps) * p_acts + eps * noise
         for move in self.legal_moves:
             a_idx = encode_action(np.array(str(self.board).split()).reshape(8, 8), move.uci(), flattened=True)
             p_a = p_acts.squeeze()[a_idx]
