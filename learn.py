@@ -5,21 +5,22 @@ import torch.nn as nn
 
 import chess_env
 
-from alphazero.mcts import MCTS
+from alphazero.mcts import MCTS, ChessBoard
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TOTAL_STEPS = 7e5
 TIMESTEPS = 8
 M = 13  # From AlphaZero: we have NxN (MT + L) layers. In the paper, M=14 cuz of repetitions=2 instead of 1 for whatever reason
-SIMULATIONS = 800
+SIMULATIONS = 5
 
 
-def board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progress_count, repetitions):
+def board_to_layers(boards, repetitions, color, total_moves, w_castling, b_castling, no_progress_count):
     '''
     convert chess.Board to binary layers to feed into a neural network.
     :param env: ChessEnv
-    :param boards: chess.Board game state
+    :param boards: chess.Board game states
+    :param repetitions: number of repetitions of the latest game state
     :param color: white's turn (True) or black's turn (False)
     :param total_moves: total moves elapsed in this game
     :param w_castling: legality of white castling kingside or queenside
@@ -66,7 +67,7 @@ def board_to_layers(boards, color, total_moves, w_castling, b_castling, no_progr
     return torch.cat(layers).view(1, -1, board_shape[0], board_shape[1])
 
 
-def get_additional_features(board: chess.Board, env):
+def get_additional_features(board: chess.Board):
     '''
     Get additional features like color, total move count, etc from a board state
     :param board: chess.Board
@@ -81,17 +82,26 @@ def get_additional_features(board: chess.Board, env):
     b_castling = [board.has_kingside_castling_rights(chess.BLACK),
                   board.has_queenside_castling_rights(chess.BLACK)]
     no_progress_count = int(board.halfmove_clock / 2)
-    repetitions = env.repetitions
 
-    return color, total_moves, w_castling, b_castling, no_progress_count, repetitions
+    return color, total_moves, w_castling, b_castling, no_progress_count
 
 
-def self_play(state, model, env):
-    mcts = MCTS(state, env, model)
-    for i in range(SIMULATIONS):
-        mcts.search()
-        print(f'Finished simulation {i}')
-    data = mcts.play()
+def self_play(root, model, env):
+    state = ChessBoard(root)
+    data = [] # stores (s_t, pi_t, z_t)
+    done = False
+    while not done:
+        mcts = MCTS(state, model)
+        for i in range(SIMULATIONS):
+            mcts.search()
+            print(f'Finished simulation {i}')
+        action, new_root, entry = mcts.play()
+        data.append(entry)
+        obs, rew, done, _ = env.step(action)
+        state = new_root
+    for entry in data:
+        # retroactively apply rewards now that we know the terminal reward
+        entry[-1] = rew if state.color == entry[0].color else -rew
     return data
 
 

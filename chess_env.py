@@ -75,7 +75,7 @@ class ChessEnv(gym.Env):
             obs = self.board.transform(chess.flip_vertical).copy()
 
         rew = self.board.result()
-        done = self.board.is_game_over()
+        done = self.board.is_game_over() or self.repetitions >= 3
         info = None
 
         return obs, rew, done, info

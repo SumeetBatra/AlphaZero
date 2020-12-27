@@ -1,7 +1,3 @@
-import chess
-import torch
-import numpy as np
-
 import learn
 
 from abc import ABC, abstractmethod
@@ -13,13 +9,27 @@ TIME_STEPS = 8
 
 
 class MCTS:
-    def __init__(self, state: chess.Board, env, model):
-        self.root = ChessBoard(state, 0)
-        self.data = []  # stores (s_t, pi_t, z_t)
-        self.env = env
+    def __init__(self, root, model):
+        self.root = root
         self.model = model
+        self._encoded_state_counter = dict()
+        self.root.expand(model)
 
-        self.root.expand(model, env)
+    def _encode_state(self, board: chess.Board):
+        '''
+        Encode the board to check for repetitions and return repetitions
+        :param board: chess.Board
+        '''
+        encoding = board.fen()
+        self._encoded_state_counter[encoding] = self._encoded_state_counter.get(encoding, 0) + 1
+
+        return self._encoded_state_counter[encoding]
+
+    def _reset_internal_state(self):
+        '''
+        reset the encoded state counter and max repetitions for a new search
+        '''
+        self._encoded_state_counter.clear()
 
     def _select(self):
         """
@@ -30,12 +40,13 @@ class MCTS:
         acts = []
         while True:
             child, taken_act = node.take_best_action()
-            self.env.step(chess.Move.from_uci(taken_act))
+            child.repetitions = self._encode_state(child.board)
             acts.append(taken_act)
             if child.is_terminal():
                 return child, acts
             if not child.visited:
                 child.visited = True
+
                 node.children[taken_act] = child
                 return child, acts
             node = child
@@ -45,7 +56,7 @@ class MCTS:
         Send the leaf node to the neural network for evaluation
         :return: value v and the leaf node
         """
-        return leaf.expand(self.model, self.env)
+        return leaf.expand(self.model)
 
     @staticmethod
     def _backprop(node, val, acts):
@@ -57,7 +68,8 @@ class MCTS:
             node.parent.actions[act] = (n, w, q, p)
             node = node.parent
 
-    def _sample(self, node, temp):
+    @staticmethod
+    def _sample(node, temp):
         '''
         sample a move based on exponentiated visit count
         :return: child node based on the move that was sampled
@@ -75,31 +87,25 @@ class MCTS:
             logits[max_idx] = 1.0
         else:
             logits = np.power(np.array(logits), 1 / temp)
-        self.data.append([node, Categorical(torch.Tensor(logits)), None])  # we don't know the reward yet - will be retroactively updated
         action = np.random.choice(actions, p=logits)
-        return node.children[action]
+        return chess.Move.from_uci(action), node.children[action], [node, Categorical(torch.Tensor(logits)), None]  # we don't know the reward yet - will be retroactively updated
 
     def search(self):
-        _ = self.env.reset()
+        self._reset_internal_state()
         leaf, acts = self._select()
         val = self._expand(leaf)
         self._backprop(leaf, val, acts)
 
     def play(self):
         node = self.root
-        while not node.is_terminal():
-            node = self._sample(node, temp=1.0)
-        reward = node.terminal_reward()
-        # assign rewards
-        for entry in self.data:
-            entry[-1] = reward if node.color == entry[0].color else -reward
-        return self.data
+        action, child, data_entry = self._sample(node, temp=1.0)
+        return action, child, data_entry
 
 
 class MCTSNode(ABC):
 
     @abstractmethod
-    def expand(self, model, env):
+    def expand(self, model):
         pass
 
     @abstractmethod
@@ -126,6 +132,7 @@ class ChessBoard(MCTSNode):
         self.legal_moves = list(self.board.legal_moves)
         self.children = dict()
         self.visited = False
+        self.repetitions = 0
 
         if self.parent:
             self.board_stack.extend(self.parent.board_stack)
@@ -141,17 +148,17 @@ class ChessBoard(MCTSNode):
         elif res == '1/':  # draw
             return 0.0
 
-    def action_value(self, model, env):
-        features = learn.get_additional_features(self.board, env)
+    def action_value(self, model):
+        features = learn.get_additional_features(self.board)
         boards = self.board_stack[-7:] + [self.board]
-        planes = learn.board_to_layers(boards, *features)
+        planes = learn.board_to_layers(boards, self.repetitions, *features)
         p_acts, val = model(torch.FloatTensor(planes).to(device))
         return p_acts, val
 
-    def expand(self, model, env):
+    def expand(self, model):
         if self.is_terminal():
             return self.terminal_reward()
-        p_acts, val = self.action_value(model, env)
+        p_acts, val = self.action_value(model)
         for move in self.legal_moves:
             a_idx = encode_action(np.array(str(self.board).split()).reshape(8, 8), move.uci(), flattened=True)
             p_a = p_acts.squeeze()[a_idx]
@@ -182,5 +189,5 @@ class ChessBoard(MCTSNode):
         return Q + U
 
     def is_terminal(self):
-        return self.board.is_game_over()
+        return self.board.is_game_over() or self.repetitions >= 3
 
