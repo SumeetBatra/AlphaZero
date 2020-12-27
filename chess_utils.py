@@ -94,16 +94,16 @@ def encode_action(str_board, legal_move, flattened=False):
         stack_idx = kdelta_to_planeidx[(dx, dy)]
 
     if flattened:
-        return (init_pos[0] + 1) * (init_pos[1] + 1) * (stack_idx + 1) - 1
+        x, y, z = init_pos[0], init_pos[1], stack_idx
+        return x + 8 * (y + 8 * z)
     return init_pos[0], init_pos[1], stack_idx
 
 
 def decode_action(action, board):
     # TODO: Test to make sure this works
-    action_space = np.zeros(4672)
-    action_space[action] = 1
-    action_space = action_space.reshape((8, 8, 73))
-    i, j, k = np.argwhere(action_space).squeeze()
+    k = action // 64
+    j = (action - k * 64) // 8
+    i = action - k * 64 - j * 8
     numerical_board = np.array(str(board).split()).reshape(8,  8)
     piece_type = numerical_board[-j-1, i]  # (row, col) = (dy, dx)
     start_row = numerical_to_uci[i+1]

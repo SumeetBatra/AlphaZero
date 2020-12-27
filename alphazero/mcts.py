@@ -79,22 +79,6 @@ class MCTS:
         action = np.random.choice(actions, p=logits)
         return node.children[action]
 
-
-        logits = []
-        moves, children = list(node.children.keys()), list(node.children.values())
-        for child in children:
-            logits.append(child.N / node.N_total)
-        if temp == 0:
-            # greedy select the best action
-            max_idx = np.argmax(logits)
-            logits = np.zeros(len(logits))
-            logits[max_idx] = 1.0
-        else:
-            logits = np.power(np.array(logits), 1 / temp)
-        self.data.append([node, Categorical(torch.Tensor(logits)), None])  # we don't know the reward yet - will be retroactively updated
-        child = np.random.choice(children, p=logits)
-        return child
-
     def search(self):
         _ = self.env.reset()
         leaf, acts = self._select()
@@ -127,7 +111,7 @@ class MCTSNode(ABC):
         pass
 
     @abstractmethod
-    def puct(self, n, p, q, coeff=1.0):
+    def puct(self, n, n_total, p, q, coeff=1.0):
         """UCT upper confidence score variant used in AlphaZero"""
         pass
 
@@ -141,7 +125,6 @@ class ChessBoard(MCTSNode):
         self.parent = parent
         self.legal_moves = list(self.board.legal_moves)
         self.children = dict()
-        self.N_total = 0
         self.visited = False
 
         if self.parent:
@@ -183,7 +166,8 @@ class ChessBoard(MCTSNode):
         max_score = -1
         for act, stats in self.actions.items():
             n, w, q, p = stats
-            score = self.puct(n, p, q)
+            n_total = sum(list([n for n, _, _, _ in self.actions.values()]))
+            score = self.puct(n, n_total, p, q)
             if score > max_score:
                 max_score = score
                 best_act = act
@@ -192,9 +176,9 @@ class ChessBoard(MCTSNode):
         child = self.children.get(best_act, ChessBoard(new_board, self))
         return child, best_act
 
-    def puct(self, n, p, q, coeff=1.0):
+    def puct(self, n, n_total, p, q, coeff=1.0):
         Q = q
-        U = coeff * p * np.sqrt(self.N_total) / (1 + n)
+        U = coeff * p * np.sqrt(n_total) / (1 + n)
         return Q + U
 
     def is_terminal(self):
