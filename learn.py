@@ -97,6 +97,7 @@ def self_play(root, model, env):
             print(f'Finished simulation {i}')
         action, new_root, entry = mcts.play()
         data.append(entry)
+        new_root.parent = None  # delete tree above the new root
         obs, rew, done, _ = env.step(action)
         state = new_root
     for entry in data:

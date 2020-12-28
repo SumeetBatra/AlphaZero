@@ -53,7 +53,7 @@ class PolicyHead(nn.Module):
     def forward(self, x):
         out = self.block(x).view(1, -1)
         out = self.linear(out)
-        return out
+        return F.softmax(out)
 
 
 class ValueHead(nn.Module):

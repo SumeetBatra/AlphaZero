@@ -1,6 +1,7 @@
 import numpy as np
 import chess
 import torch
+import torch.nn.functional as F
 
 from torch.utils.data import Dataset
 
@@ -51,6 +52,7 @@ def encode_action(str_board, legal_move, flattened=False):
     encode a legal move into a representation that matches the probs output of the policy head
     :param str_board: numpy array (8,8) string representation of chess.Board
     :param legal_move: string representation of a legal move
+    :param flattened: return index to flat representation of action probabilities
     :return: (i,j) pos of the piece to pick up and plane_idx (k)
     '''
     init_pos = np.array([uci_to_numerical[legal_move[0]]-1, int(legal_move[1])-1])
@@ -157,17 +159,11 @@ def decode_action(action, board):
 def mask_illegal_actions(state, p_raw):
     # TODO: Test to make sure this works correctly
     legal_moves = [mv.uci() for mv in state.legal_moves]
-    mask = np.zeros(4672).reshape((8, 8, 73))
-    p_raw = p_raw.reshape((8, 8, 73))
+    mask = np.zeros(4672)
+    str_board = np.array(str(state).split()).reshape(8, 8)
     for legal_move in legal_moves:
-        str_board = np.array(str(state).split()).reshape(8, 8)
-        i, j, k = encode_action(str_board, legal_move)
-        # test = np.zeros((8, 8, 73))
-        # test[i, j, k] = 1
-        # test = test.reshape(-1)
-        # test_act = decode_action(np.argwhere(test), state)
-        # assert(str(test_act) == legal_move)
-        mask[i, j, k] = 1
+        idx = encode_action(str_board, legal_move, flattened=True)
+        mask[idx] = 1
 
     p_masked = p_raw * torch.Tensor(mask).detach()
-    return p_masked
+    return F.softmax(p_masked)

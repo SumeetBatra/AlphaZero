@@ -70,9 +70,11 @@ class ChessEnv(gym.Env):
         self.board.push(action)
         self.encode_state(self.board)
 
-        obs = self.board.copy()
-        if self.board.turn == chess.BLACK:
-            obs = self.board.transform(chess.flip_vertical).copy()
+        # flip the board to be in the current player's perspective
+        board_copy = self.board.copy()
+        board_copy.apply_transform(chess.flip_vertical)
+        board_copy.apply_transform(chess.flip_horizontal)
+        obs = board_copy
 
         rew = self.board.result()
         done = self.board.is_game_over() or self.repetitions >= 3

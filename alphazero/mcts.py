@@ -161,7 +161,8 @@ class ChessBoard(MCTSNode):
         p_acts, val = self.action_value(model)
         if root:  # add dirichlet noise to root node for exploration
             eps = 0.25
-            noise = torch.distributions.dirichlet.Dirichlet(torch.Tensor([0.3])).sample(p_acts.shape)
+            alpha = torch.ones_like(p_acts) * 0.3
+            noise = torch.distributions.dirichlet.Dirichlet(alpha).sample()
             p_acts = (1-eps) * p_acts + eps * noise
         for move in self.legal_moves:
             a_idx = encode_action(np.array(str(self.board).split()).reshape(8, 8), move.uci(), flattened=True)
