@@ -1,4 +1,5 @@
 import learn
+import time
 
 from abc import ABC, abstractmethod
 from torch.distributions.categorical import Categorical
@@ -31,75 +32,41 @@ class MCTS:
         '''
         self._encoded_state_counter.clear()
 
-    def _select(self):
-        """
-        Rollout a game using current statistics. Store new unvisited leaf on the tree
-        :return: Leaf node
-        """
-        node = self.root
-        acts = []
-        while True:
-            child, taken_act = node.take_best_action()
-            child.repetitions = self._encode_state(child.board)
-            acts.append(taken_act)
-            if child.is_terminal():
-                return child, acts
-            if not child.visited:
-                child.visited = True
-
-                node.children[taken_act] = child
-                return child, acts
-            node = child
-
-    def _expand(self, leaf):
-        """
-        Send the leaf node to the neural network for evaluation
-        :return: value v and the leaf node
-        """
-        return leaf.expand(self.model)
+    def search(self):
+        leaf = self.root.select_leaf()
+        val = leaf.expand(self.model)
+        self._backprop(leaf, val)
 
     @staticmethod
-    def _backprop(node, val, acts):
-        for act in list(reversed(acts)):
-            n, w, _, p = node.parent.actions[act]
-            n += 1
-            w += val
-            q = w / n
-            node.parent.actions[act] = (n, w, q, p)
+    def _backprop(leaf, val):
+        node = leaf
+        while node.parent:
+            node.parent.child_N[node.move] += 1
+            node.parent.child_W[node.move] += val
+            node.parent.child_Q[node.move] = node.parent.child_W[node.move] / node.parent.child_N[node.move]
             node = node.parent
+            val = -val
 
-    @staticmethod
-    def _sample(node, temp):
+    def _sample(self, temp):
         '''
-        sample a move based on exponentiated visit count
-        :return: child node based on the move that was sampled
+        sample a move based on the exponentiated visit count
+        :param temp: temperature hyper-parameter
+        :return: child node
         '''
-        logits = []
-        actions, stats = list(node.actions.keys()), list(node.actions.values())
-        n_total = sum(list([n for n, _, _, _ in node.actions.values()]))
-        for stat in stats:
-            n, w, q, p = stat
-            logits.append(n / n_total)
+        logits = self.root.child_N / np.sum(self.root.child_N)
         if temp == 0:
             # greedy select the best action
-            max_idx = np.argmax(logits)
-            logits = np.zeros(len(logits))
-            logits[max_idx] = 1.0
+            action = np.argmax(logits)
+            logits = np.zeros_like(logits)
+            logits[action] = 1.0  # need this to parametrize the policy
         else:
-            logits = np.power(np.array(logits), 1 / temp)
-        action = np.random.choice(actions, p=logits)
-        return chess.Move.from_uci(action), node.children[action], [node, Categorical(torch.Tensor(logits)), None]  # we don't know the reward yet - will be retroactively updated
-
-    def search(self):
-        self._reset_internal_state()
-        leaf, acts = self._select()
-        val = self._expand(leaf)
-        self._backprop(leaf, val, acts)
+            logits = np.power(np.array(logits), 1.0 / temp)
+            action = np.random.choice(len(self.root.legal_moves), p=logits)
+        return self.root.legal_moves[action], self.root.children[action], [self.root.board, Categorical(torch.Tensor(logits)), None]  # we don't know the reward yet - will be retroactively updated
 
     def play(self):
-        node = self.root
-        action, child, data_entry = self._sample(node, temp=1.0)
-        return action, child, data_entry
+        action, child, datapoint = self._sample(temp=1.0)
+        return action, child, datapoint
 
 
 class MCTSNode(ABC):
@@ -109,7 +76,11 @@ class MCTSNode(ABC):
         pass
 
     @abstractmethod
-    def take_best_action(self):
+    def select_leaf(self):
+        pass
+
+    @abstractmethod
+    def best_child(self):
         pass
 
     @abstractmethod
@@ -117,36 +88,81 @@ class MCTSNode(ABC):
         pass
 
     @abstractmethod
-    def puct(self, n, n_total, p, q, coeff=1.0):
+    def puct(self, cpuc=1.0):
         """UCT upper confidence score variant used in AlphaZero"""
         pass
 
 
 class ChessBoard(MCTSNode):
-    def __init__(self, board, parent=None):
+    def __init__(self, board, move, parent=None):
         super(ChessBoard).__init__()
-        self.board = board
-        self.board_stack = [board]
-        self.color = board.turn
         self.parent = parent
-        self.legal_moves = list(self.board.legal_moves)
-        self.children = dict()
+        self.move = move  # idx of move that was taken to get to this node. None if root
+        self.board = board
+        self.color = board.turn
+        if self.color == chess.BLACK:
+            #  board should be in orientation of current player when fed to the neural network
+            nn_board = board.copy()
+            nn_board.apply_transform(chess.flip_vertical)
+            nn_board.apply_transform(chess.flip_horizontal)
+        else:
+            nn_board = board
+        self.board_stack = [nn_board]
+        if self.parent:
+            self.board_stack = self.parent.board_stack[-7:] + self.board_stack
+        self.legal_moves = [move.uci() for move in board.legal_moves]
         self.visited = False
         self.repetitions = 0
+        self.children = {}  # {move idx: MCTSNode}
+        self.child_N = np.zeros(len(self.legal_moves), dtype=np.float32)
+        self.child_W = np.zeros(len(self.legal_moves), dtype=np.float32)
+        self.child_Q = np.zeros(len(self.legal_moves), dtype=np.float32)
+        self.child_P = np.zeros(len(self.legal_moves), dtype=np.float32)
 
-        if self.parent:
-            self.board_stack.extend(self.parent.board_stack)
+    def puct(self, cpuct=3.0, eps=1e-8):
+        '''
+        Vectorized PUCT algorithm.
+        :param cpuct: Hyperparameter controlling exploration
+        :param eps: epsilon to be added inside the square root to prevent all zeros
+        :return: PUCT Score
+        '''
+        U = cpuct * self.child_P * np.sqrt(np.sum(self.child_N) + eps) / (1.0 + self.child_N)
+        return self.child_Q + U
 
-        self.actions = dict()
+    def best_child(self):
+        move_idx = np.argmax(self.puct())
+        child = self.children.get(move_idx, None)
+        if child:
+            return child
+        else:
+            new_board = self.board.copy()
+            new_board.push(chess.Move.from_uci(self.legal_moves[move_idx]))
+            child = ChessBoard(new_board, move_idx, self)
+            self.children[move_idx] = child
+            return child
 
-    def terminal_reward(self):
-        res = self.board.result()[0:2]  # can be '1-0', '0-1', or '1/2-1/2'
-        if res == '1-':  # current player wins
-            return 1.0
-        elif res == '0-':  # opponent wins
-            return -1.0
-        elif res == '1/':  # draw
-            return 0.0
+    def select_leaf(self):
+        node = self
+        while node.visited:
+            node = node.best_child()
+            print(f'Best child: \n {node.board}')
+            time.sleep(0.1)
+        return node
+
+    def expand(self, model, root=False):
+        self.visited = True
+        p_acts, val = self.action_value(model)
+        if root:  # add dirichlet noise to root node for exploration
+            eps = 0.25
+            alpha = torch.ones_like(p_acts) * 0.3
+            noise = torch.distributions.dirichlet.Dirichlet(alpha).sample()
+            p_acts = (1-eps) * p_acts + eps * noise
+        np_board = np.array(str(self.board).split()).reshape(8, 8)
+        action_inds = [encode_action(np_board, move, flattened=True) for move in self.legal_moves]
+        p_a = p_acts[action_inds].detach().numpy()
+        p_a = p_a / np.sum(p_a)  # renormalize the probabilities
+        self.child_P = p_a
+        return val
 
     def action_value(self, model):
         features = learn.get_additional_features(self.board)
@@ -155,44 +171,5 @@ class ChessBoard(MCTSNode):
         p_acts, val = model(torch.FloatTensor(planes).to(device))
         return p_acts, val
 
-    def expand(self, model, root=False):
-        if self.is_terminal():
-            return self.terminal_reward()
-        p_acts, val = self.action_value(model)
-        if root:  # add dirichlet noise to root node for exploration
-            eps = 0.25
-            alpha = torch.ones_like(p_acts) * 0.3
-            noise = torch.distributions.dirichlet.Dirichlet(alpha).sample()
-            p_acts = (1-eps) * p_acts + eps * noise
-        for move in self.legal_moves:
-            a_idx = encode_action(np.array(str(self.board).split()).reshape(8, 8), move.uci(), flattened=True)
-            p_a = p_acts.squeeze()[a_idx]
-            self.actions[move.uci()] = (0, 0, 0, p_a)
-        return val
-
-    def take_best_action(self):
-        if self.is_terminal():
-            return self
-        assert len(self.actions) != 0, "This node has not been expanded yet"
-        best_act = None
-        max_score = -1
-        for act, stats in self.actions.items():
-            n, w, q, p = stats
-            n_total = sum(list([n for n, _, _, _ in self.actions.values()]))
-            score = self.puct(n, n_total, p, q)
-            if score > max_score:
-                max_score = score
-                best_act = act
-        new_board = self.board.copy()
-        new_board.push(chess.Move.from_uci(best_act))
-        child = self.children.get(best_act, ChessBoard(new_board, self))
-        return child, best_act
-
-    def puct(self, n, n_total, p, q, coeff=1.0):
-        Q = q
-        U = coeff * p * np.sqrt(n_total) / (1 + n)
-        return Q + U
-
     def is_terminal(self):
         return self.board.is_game_over() or self.repetitions >= 3
-

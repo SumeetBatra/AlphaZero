@@ -3,6 +3,7 @@ import torch.nn.functional as F
 
 from torch.distributions.categorical import Categorical
 
+
 class ConvBlock(nn.Module):
     def __init__(self, in_planes, out_planes=256, kernel=3, stride=1):
         super(ConvBlock, self).__init__()
@@ -53,7 +54,7 @@ class PolicyHead(nn.Module):
     def forward(self, x):
         out = self.block(x).view(1, -1)
         out = self.linear(out)
-        return F.softmax(out)
+        return F.softmax(out.squeeze())
 
 
 class ValueHead(nn.Module):

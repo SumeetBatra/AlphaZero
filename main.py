@@ -1,10 +1,5 @@
-import time
-import random
-import chess
-import torch
-import numpy as np
 import torch.optim as optim
-import torch.multiprocessing as multiprocessing
+import torch.multiprocessing as mp
 
 import chess_env
 
@@ -13,7 +8,6 @@ from chess_utils import *
 from alphazero.model import AlphaZero
 
 from torch.utils.data.dataloader import DataLoader
-from torch.distributions.categorical import Categorical
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -102,17 +96,30 @@ def train():
     optimizer = optim.Adam(model.parameters(), lr=0.2, weight_decay=L2_REG)
 
     obs = env.reset()
-
+    queue = []
     for i in range(TOTAL_STEPS):
-        if i > 0:
-            data = self_play(obs, model, env)
-            train_data = ChessDataset(data)
-            dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
-            learn(env, model, optimizer, dataloader)
-        else:
-            data = self_play(obs, model, env)
-            train_data = ChessDataset(data)
-            dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
+        data = self_play(obs, model, env, queue)
+        train_data = ChessDataset(data)
+        dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
+        learn(env, model, optimizer, dataloader)
+
+    # actors = []
+    # q = mp.Queue()
+    # for rank in range(1):
+    #     actor = mp.Process(target=self_play, args=(obs, model, env, q))
+    #     actor.start()
+    #     actors.append(actor)
+    #
+    #     while any(actor.is_alive() for actor in actors) or not q.empty():
+    #         print("Waiting for training data...")
+    #         train_data = q.get()
+    #         print("Updating the network...")
+    #         dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
+    #         learn(env, model, optimizer, dataloader)
+    #         print("Finished updating the network! ")
+
+
+
 
 
 if __name__ == '__main__':

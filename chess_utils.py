@@ -66,6 +66,9 @@ def encode_action(str_board, legal_move, flattened=False):
     if pawn_underpromote:
         promote_idx = ((underpromotion_to_numerical[legal_move[-1]] - 1) * 3 + pdelta_to_numerical[(dx, dy)]) - 1
         stack_idx = 64 + promote_idx
+        if flattened:
+            x, y, z = init_pos[0], init_pos[1], stack_idx
+            return x + 8 * (y + 8 * z)
         return init_pos[0], init_pos[1], stack_idx
 
     if str_board[-init_pos[1]-1, init_pos[0]] not in ['n', 'N']:  # piece to move is not a knight. Also (row, col) = (dy, dx)
@@ -157,7 +160,6 @@ def decode_action(action, board):
 
 
 def mask_illegal_actions(state, p_raw):
-    # TODO: Test to make sure this works correctly
     legal_moves = [mv.uci() for mv in state.legal_moves]
     mask = np.zeros(4672)
     str_board = np.array(str(state).split()).reshape(8, 8)
