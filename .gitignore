@@ -1,2 +1,5 @@
 __pycache__
 .idea*
+.DS_Store
+alphazero/cmake-build-debug
+alphazero/mcts/cmake-build-debug

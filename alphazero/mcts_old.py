@@ -1,5 +1,6 @@
 import learn
 import time
+import torch.multiprocessing as mp
 
 from abc import ABC, abstractmethod
 from torch.distributions.categorical import Categorical
@@ -9,12 +10,20 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TIME_STEPS = 8
 
 
-class MCTS:
+class MCTS(object):
     def __init__(self, root, model):
         self.root = root
         self.model = model
         self._encoded_state_counter = dict()
         self.root.expand(model, root=True)
+
+    @property
+    def root_node(self):
+        return self.root
+
+    @root_node.setter
+    def root_node(self, new_root):
+        self.root = new_root
 
     def _encode_state(self, board: chess.Board):
         '''
@@ -32,17 +41,18 @@ class MCTS:
         '''
         self._encoded_state_counter.clear()
 
-    def search(self):
-        leaf = self.root.select_leaf()
+    def search(self, lock):
+        leaf = self.root.select_leaf(lock)
         val = leaf.expand(self.model)
         self._backprop(leaf, val)
 
     @staticmethod
     def _backprop(leaf, val):
+        leaf.visit_count += 1
         node = leaf
         while node.parent:
-            node.parent.child_N[node.move] += 1
-            node.parent.child_W[node.move] += val
+            # node.visit_count += 1
+            node.parent.child_W[node.move] += val + 1  # +1 to counteract virtual loss
             node.parent.child_Q[node.move] = node.parent.child_W[node.move] / node.parent.child_N[node.move]
             node = node.parent
             val = -val
@@ -53,7 +63,7 @@ class MCTS:
         :param temp: temperature hyper-parameter
         :return: child node
         '''
-        logits = self.root.child_N / np.sum(self.root.child_N)
+        logits = self.root.child_N / self.root.visit_count
         if temp == 0:
             # greedy select the best action
             action = np.argmax(logits)
@@ -76,7 +86,7 @@ class MCTSNode(ABC):
         pass
 
     @abstractmethod
-    def select_leaf(self):
+    def select_leaf(self, lock):
         pass
 
     @abstractmethod
@@ -119,6 +129,22 @@ class ChessBoard(MCTSNode):
         self.child_Q = np.zeros(len(self.legal_moves), dtype=np.float32)
         self.child_P = np.zeros(len(self.legal_moves), dtype=np.float32)
 
+    @property
+    def visit_count(self):
+        return self.parent.child_N[self.move] if self.parent else 1  # if self.parent == None i.e root node, return 1
+
+    @visit_count.setter
+    def visit_count(self, visits):
+        if self.parent: self.parent.child_N[self.move] = visits
+
+    @property
+    def total_value(self):
+        return self.parent.child_W[self.move] if self.parent else 1
+
+    @total_value.setter
+    def total_value(self, value):
+        if self.parent: self.parent.child_W[self.move] = value
+
     def puct(self, cpuct=3.0, eps=1e-8):
         '''
         Vectorized PUCT algorithm.
@@ -126,7 +152,8 @@ class ChessBoard(MCTSNode):
         :param eps: epsilon to be added inside the square root to prevent all zeros
         :return: PUCT Score
         '''
-        U = cpuct * self.child_P * np.sqrt(np.sum(self.child_N) + eps) / (1.0 + self.child_N)
+        # see https://ai.stackexchange.com/questions/25451/how-does-alphazeros-mcts-work-when-starting-from-the-root-node for why U is calculated this way
+        U = cpuct * self.child_P * np.sqrt(self.visit_count + eps) / (1.0 + self.child_N)
         return self.child_Q + U
 
     def best_child(self):
@@ -141,9 +168,15 @@ class ChessBoard(MCTSNode):
             self.children[move_idx] = child
             return child
 
-    def select_leaf(self):
+    def select_leaf(self, lock):
         node = self
         while node.visited:
+            ##############################################
+            # virtual loss
+            with lock:
+                node.visit_count += 1
+                node.total_value -= 1
+            ##############################################
             node = node.best_child()
             print(f'Best child: \n {node.board}')
             time.sleep(0.1)
@@ -166,8 +199,7 @@ class ChessBoard(MCTSNode):
 
     def action_value(self, model):
         features = learn.get_additional_features(self.board)
-        boards = self.board_stack[-7:] + [self.board]
-        planes = learn.board_to_layers(boards, self.repetitions, *features)
+        planes = learn.board_to_layers(self.board_stack, self.repetitions, *features)
         p_acts, val = model(torch.FloatTensor(planes).to(device))
         return p_acts, val
 
