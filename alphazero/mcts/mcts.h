@@ -26,7 +26,6 @@ private:
     auto action_value(); // TODO: Figure out what to do with model
     bool is_terminal();
 
-    Node select_leaf();
     double expand(bool root=false); // TODO: Figure out what to do with model
 
 
@@ -53,6 +52,7 @@ public:
     void set_total_value(int value);
 
     Node best_child();
+    Node select_leaf();
 
 };
 

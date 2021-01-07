@@ -26,6 +26,12 @@ void MCTS::backprop(Node &leaf, double val) {
     }
 }
 
+void MCTS::search(){
+    Node leaf = this->root;
+    double val = leaf.expand(true);
+    this->backprop(leaf, val);
+}
+
 auto MCTS::play(double temperature) {
     // struct contains the values we wish to return
     struct ret_vals{
@@ -54,8 +60,11 @@ auto MCTS::play(double temperature) {
     };
 }
 
+Node::Node(){}
 
-Node::Node(std::string board_fen, int move, Node* parent) : board_fen(board_fen), move(move), parent(parent) {}
+Node::Node(std::string board_fen, int move, Node* parent) : board_fen(board_fen), move(move), parent(parent) {
+    this->visited = false;
+}
 
 void Node::set_visit_count(uint16_t visits) {
     this->parent->child_N(move) = visits;
