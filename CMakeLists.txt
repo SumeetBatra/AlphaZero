@@ -20,9 +20,11 @@ add_library(mcts_lib alphazero/mcts/mcts.cpp)
 find_package(xtensor REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(Boost REQUIRED)
+find_package(PythonLibs REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
-target_link_libraries(main mcts_lib xtensor)
-target_link_libraries(main PUBLIC ${Boost_LIBRARIES})
+target_link_libraries(main PUBLIC mcts_lib ${Boost_LIBRARIES}
+                                    ${PYTHON_LIBRARIES}
+                                    ${xtensor_LIBRARIES})
 target_include_directories(mcts_lib PUBLIC ${xtensor_INCLUDE_DIRS})
 
 #add_library(chess_utils alphazero/mcts/chess_utils.cpp)
