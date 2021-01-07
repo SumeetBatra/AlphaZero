@@ -13,12 +13,13 @@ set(CMAKE_CXX_STANDARD 14)
 #set(CMAKE_SYSTEM_PREFIX_PATH  "/Users/sumeetbatra/opt/miniconda3/envs/RL/")
 
 add_executable(main alphazero/mcts/main.cpp)
+add_library(mcts_lib alphazero/mcts/mcts.cpp)
 
 
 find_package(xtensor REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(Boost REQUIRED)
-target_link_libraries(main PRIVATE pybind11::embed)
+target_link_libraries(main mcts_lib)
 
 #add_library(chess_utils alphazero/mcts/chess_utils.cpp)
 pybind11_add_module(chess_utils alphazero/mcts/chess_utils.cpp)
