@@ -1,13 +1,10 @@
 //
 // Created by Sumeet Batra on 1/5/21.
 //
-#include <boost/python.hpp>
-using namespace boost::python;
+#include "mcts.h"
 
-BOOST_PYTHON_MODULE(hello)
-{
-    class_<World>("World")
-            .def("greet", &World::greet)
-            .def("set", &World::set)
-            ;
+
+
+int main(int argc, char* argv[]){
+    return -1;
 }

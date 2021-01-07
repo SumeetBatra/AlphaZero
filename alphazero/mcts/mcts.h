@@ -10,12 +10,6 @@
 #include <map>
 #include "xtensor/xarray.hpp"
 
-struct World
-{
-    void set(std::string msg) { this->msg = msg; }
-    std::string greet() { return msg; }
-    std::string msg;
-};
 
 class Node{
 private:
@@ -37,8 +31,9 @@ private:
 
 
 public:
+    // default constructor
+    Node();
     // constructor
-
     Node(std::string board_fen, int move, Node* parent=NULL);
 
     friend class MCTS;
