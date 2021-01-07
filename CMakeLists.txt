@@ -17,7 +17,13 @@ add_executable(main alphazero/mcts/main.cpp)
 
 find_package(xtensor REQUIRED)
 find_package(pybind11 REQUIRED)
-#pybind11_add_module(test alphazero/mcts/test.cpp)
+find_package(Boost REQUIRED)
+target_link_libraries(main PRIVATE pybind11::embed)
+
+#add_library(chess_utils alphazero/mcts/chess_utils.cpp)
+pybind11_add_module(chess_utils alphazero/mcts/chess_utils.cpp)
+target_include_directories(chess_utils PUBLIC ${pybind11_INCLUDE_DIRS})
+
 
 #target_include_directories(mcts PUBLIC ${xtensor_INCLUDE_DIRS})
 #target_include_directories(main PUBLIC ${pybind11_INCLUDE_DIRS})
@@ -28,4 +34,5 @@ target_include_directories(main PUBLIC
         "${PROJECT_SOURCE_DIR}"
         ${pybind11_INCLUDE_DIRS}
         ${xtensor_INCLUDE_DIRS}
+        ${Boost_INCLUDE_DIRS}
         )

@@ -10,6 +10,13 @@
 #include <map>
 #include "xtensor/xarray.hpp"
 
+struct World
+{
+    void set(std::string msg) { this->msg = msg; }
+    std::string greet() { return msg; }
+    std::string msg;
+};
+
 class Node{
 private:
     Node* parent;
@@ -30,6 +37,8 @@ private:
 
 
 public:
+    // constructor
+
     Node(std::string board_fen, int move, Node* parent=NULL);
 
     friend class MCTS;
@@ -45,7 +54,6 @@ public:
 
     int get_visit_count(){return (parent != NULL) ? parent->child_N[move] : 1;}
     void set_visit_count(uint16_t visits);
-
     double get_total_value(){return (parent != NULL) ? parent->child_W[move] : 1;}
     void set_total_value(int value);
 
@@ -56,7 +64,6 @@ public:
 class MCTS{
 private:
     Node root;
-
     void backprop(Node &leaf, double val);
 
 public:
@@ -64,7 +71,6 @@ public:
 
     Node get_root(){return root;}
     void set_root(Node &root_node);
-
     void search();
     auto play(double temperature);
 };
