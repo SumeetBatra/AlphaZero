@@ -3,3 +3,4 @@ __pycache__
 .DS_Store
 alphazero/cmake-build-debug
 alphazero/mcts/cmake-build-debug
+extern

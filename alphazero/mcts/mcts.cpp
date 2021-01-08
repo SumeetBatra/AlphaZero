@@ -1,15 +1,66 @@
 //
 // Created by Sumeet Batra on 1/3/21.
 //
+#include <iostream>
 #include <string>
 #include <vector>
 #include <tuple>
 #include "mcts.h"
+#include "thc.h"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xsort.hpp"
 #include "xtensor/xrandom.hpp"
+#include <torch/torch.h>
+#include <torch/script.h>
 
-MCTS::MCTS(Node &root_node) : root(root_node){}
+// some helper functions first
+void assert_msg(bool cond, std::string error_message){
+    if(!cond)
+        std::cerr << error_message << '\n';
+        abort();
+}
+
+auto load_module(std::string path="./../annotated_alphazero.pt"){
+
+//    torch::jit::script::Module module;
+    std::string s = "abc";
+    try{
+        // Deserialize the ScriptModule from a file using torch::jit::load().
+//        module = torch::jit::load(path);
+//        return module;
+    }
+    catch (const c10::Error& e) {
+        std::cerr << "error loading the model\n";
+        std::abort();
+    }
+    return -1;
+}
+
+auto get_additional_features(thc::ChessRules &cr){
+    bool color = cr.white;
+    int total_moves = cr.full_move_count;
+    xt::xarray<bool> w_castling = {cr.wking_allowed(), cr.wqueen_allowed()};
+    xt::xarray<bool> b_castling = {cr.bking_allowed(), cr.bqueen_allowed()};
+    int no_progress_count = cr.half_move_clock;
+    int repetitions = cr.GetRepetitionCount();
+    return std::tuple<bool, int, xt::xarray<bool>, xt::xarray<bool>, int, int>
+            (color, total_moves, w_castling, b_castling, no_progress_count, repetitions);
+}
+
+std::string push_move(std::string prev_pos_fen, std::string terse_move){
+    thc::ChessRules cr;
+    cr.Forsyth(prev_pos_fen.c_str());
+    thc::Move mv;
+    bool res = mv.TerseIn(&cr, terse_move.c_str());
+    assert_msg(res, "Invalid move " + terse_move + " passed to the engine.");
+    cr.PlayMove(mv);
+    return cr.ForsythPublish();
+}
+
+MCTS::MCTS(Node &root_node) : root(root_node){
+//    this->model = load_module();
+    load_module();
+}
 
 void MCTS::set_root(Node &root_node) {
     root = root_node;
@@ -27,7 +78,7 @@ void MCTS::backprop(Node &leaf, double val) {
 }
 
 void MCTS::search(){
-    Node leaf = this->root;
+    Node leaf = this->root.select_leaf();
     double val = leaf.expand(true);
     this->backprop(leaf, val);
 }
@@ -87,9 +138,9 @@ Node Node::best_child() {
     if(child_exists == 1) {
         return this->children[move_idx];
     }else{
-        //TODO: Need to interface with Python chess library here to get the new board's fen
-        std::string new_board_fen = "";
-        return Node(new_board_fen, move_idx, this);;
+        std::string prev_pos_fen = this->board_fen;
+        std::string new_pos_fen = push_move(prev_pos_fen, this->legal_moves[move_idx]);
+        return Node(new_pos_fen, move_idx);
     }
 }
 
@@ -106,11 +157,9 @@ Node Node::select_leaf() {
     return node;
 }
 
-auto Node::action_value() {
-    struct ret_vals{
-        xt::xarray<double> p_acts;
-        double val;
-    };
+auto Node::action_value(torch::jit::Module module) {
+
+
     //TODO: Figure out how to implement this and get values back from the neural network
     //TODO: Will need to interface with python code here
 
@@ -124,7 +173,9 @@ double Node::expand(bool root) {
     this->visited = true;
     xt::xarray<double> p_acts;
     double val;
-    tie(p_acts, val) = this->action_value();
+    //placeholder
+//    torch::jit::Module module;
+//    tie(p_acts, val) = this->action_value(); // TODO: Fix this
 
     if(root){
         //TODO: figure out how to use PyTorch here

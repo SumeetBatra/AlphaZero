@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <torch/script.h>
 #include "xtensor/xarray.hpp"
 
 
@@ -23,7 +24,7 @@ private:
     xt::xarray<double> child_P;
 
     xt::xarray<double> puct(double cpuct=3.0);
-    auto action_value(); // TODO: Figure out what to do with model
+    auto action_value(torch::jit::Module module); // TODO: Figure out what to do with model
     bool is_terminal();
 
     double expand(bool root=false); // TODO: Figure out what to do with model
@@ -63,6 +64,7 @@ private:
 
 public:
     MCTS(Node &root_node);  //TODO: Figure out what to do with the neural network
+//    torch::jit::Module model;
 
     Node get_root(){return root;}
     void set_root(Node &root_node);
