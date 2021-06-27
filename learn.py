@@ -1,11 +1,10 @@
 import torch
 import chess
-import numpy as np
 import torch.nn as nn
 
 import chess_env
 
-from alphazero.mcts import MCTS, ChessBoard
+from alphazero.mcts.mcts import MCTS, ChessBoard
 from chess_utils import ChessDataset
 
 
@@ -91,16 +90,19 @@ def self_play(root, model, env, queue):
     state = ChessBoard(root, None)
     data = [] # stores (s_t, pi_t, z_t)
     done = False
+    new_game = True
     while not done:
-        mcts = MCTS(state, model)
+        if new_game:
+            mcts = MCTS(state, model)
+            new_game = False
         for i in range(SIMULATIONS):
             mcts.search()
             print(f'Finished simulation {i}')
         action, new_root, entry = mcts.play()
         data.append(entry)
-        new_root.parent = None  # delete tree above the new root
+        new_root.delete_parent()  # delete tree above the new root
         obs, rew, done, _ = env.step(chess.Move.from_uci(action))
-        state = new_root
+        mcts.root = new_root
     print("Finished a game")
     for entry in data:
         # retroactively apply rewards now that we know the terminal reward

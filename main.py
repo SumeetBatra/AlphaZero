@@ -11,7 +11,7 @@ from torch.utils.data.dataloader import DataLoader
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-TOTAL_STEPS = int(7e5)
+TOTAL_STEPS = int(100)
 USE_TENSORBOARD = False
 BATCH_SIZE = 32
 L2_REG = 1e-4
