@@ -54,7 +54,7 @@ class PolicyHead(nn.Module):
     def forward(self, x):
         out = self.block(x).view(1, -1)
         out = self.linear(out)
-        return F.softmax(out.squeeze())
+        return F.softmax(out.squeeze(), dim=0)
 
 
 class ValueHead(nn.Module):

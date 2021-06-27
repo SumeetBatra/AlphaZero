@@ -110,6 +110,7 @@ class ChessBoard(MCTSNode):
         self.move = move  # idx of move that was taken to get to this node. None if root
         self.board = board
         self.color = board.turn
+        self.visits = 0 # only used for root node b/c it has no parent
         if self.color == chess.BLACK:
             #  board should be in orientation of current player when fed to the neural network
             nn_board = board.copy()
@@ -131,11 +132,15 @@ class ChessBoard(MCTSNode):
 
     @property
     def visit_count(self):
-        return self.parent.child_N[self.move] if self.parent else 1  # if self.parent == None i.e root node, return 1
+        return self.parent.child_N[self.move] if self.parent else self.visits  # if self.parent == None i.e root node, return 1
 
     @visit_count.setter
     def visit_count(self, visits):
-        if self.parent: self.parent.child_N[self.move] = visits
+        if self.parent:
+            self.parent.child_N[self.move] = visits
+        else:
+            self.visits = visits
+
 
     @property
     def total_value(self):
@@ -173,7 +178,7 @@ class ChessBoard(MCTSNode):
         while node.visited:
             ##############################################
             # virtual loss
-            node.visit_count += 1
+            node.visit_count = node.visit_count + 1
             node.total_value -= 1
             ##############################################
             node = node.best_child()
@@ -204,3 +209,12 @@ class ChessBoard(MCTSNode):
 
     def is_terminal(self):
         return self.board.is_game_over() or self.repetitions >= 3
+
+    def print(self):
+        # easy to visualize the board during debugging
+        return np.array(str(self.board).split()).reshape(8, 8)
+
+    def delete_parent(self):
+        # delete parent so that current node becomes the new root
+        self.visits = self.visit_count - 1  # subtract 1 so that root visits = sum(child_N)
+        self.parent = None
