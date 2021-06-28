@@ -3,16 +3,18 @@ import chess
 import torch.nn as nn
 
 import chess_env
+import utils
 
 from alphazero.mcts.mcts import MCTS, ChessBoard
+from utils import TBLogger, log
 from chess_utils import ChessDataset
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-TOTAL_STEPS = 7e5
 TIMESTEPS = 8
 M = 13  # From AlphaZero: we have NxN (MT + L) layers. In the paper, M=14 cuz of repetitions=2 instead of 1 for whatever reason
 SIMULATIONS = 5
+logger = TBLogger()
 
 
 def board_to_layers(boards, repetitions, color, total_moves, w_castling, b_castling, no_progress_count):
@@ -97,22 +99,22 @@ def self_play(root, model, env, queue):
             new_game = False
         for i in range(SIMULATIONS):
             mcts.search()
-            print(f'Finished simulation {i}')
+            log.debug(f'Finished simulation {i}')
         action, new_root, entry = mcts.play()
         data.append(entry)
         new_root.delete_parent()  # delete tree above the new root
         obs, rew, done, _ = env.step(chess.Move.from_uci(action))
         mcts.root = new_root
-    print("Finished a game")
     for entry in data:
         # retroactively apply rewards now that we know the terminal reward
         entry[-1] = rew if state.color == entry[0].color else -rew
 
-    queue.put(ChessDataset(data))  # shared queue
+    return data
 
 
 def learn(model, optimizer, dataloader, env):
-    for _, samples in enumerate(dataloader):
+    total_loss = 0
+    for i, samples in enumerate(dataloader):
         s, pi, z = samples[:, 0], samples[:, 1], samples[:, 2]
         extra_features = get_additional_features(s, env)
         planes = board_to_layers(*extra_features)
@@ -122,5 +124,8 @@ def learn(model, optimizer, dataloader, env):
         value_loss = nn.MSELoss()(v, z)
         policy_loss = -torch.sum(p * pi)
         loss = value_loss + policy_loss
+        total_loss += loss
         loss.backward()
         optimizer.step()
+
+    return total_loss

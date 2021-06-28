@@ -26,11 +26,20 @@ formatter = ColoredFormatter(
 )
 ch.setFormatter(formatter)
 
+if not os.path.isfile('logs/log.txt'):
+    os.makedirs('logs')
+    file = open('logs/log.txt', 'w+')
+
+fh = logging.FileHandler('logs/log.txt')
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(formatter)
+
 log = logging.getLogger('rl')
 log.setLevel(logging.DEBUG)
 log.handlers = []  # No duplicated handlers
 log.propagate = False  # workaround for duplicated logs in ipython
 log.addHandler(ch)
+log.addHandler(fh)
 
 
 

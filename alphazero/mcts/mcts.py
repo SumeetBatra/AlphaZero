@@ -5,6 +5,7 @@ import torch.multiprocessing as mp
 from abc import ABC, abstractmethod
 from torch.distributions.categorical import Categorical
 from chess_utils import *
+from utils import log
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TIME_STEPS = 8
@@ -182,8 +183,9 @@ class ChessBoard(MCTSNode):
             node.total_value -= 1
             ##############################################
             node = node.best_child()
-            print(f'Best child: \n {node.board}')
-            time.sleep(0.1)
+
+            # log.debug(f'Best child: \n {node.board}\n')
+            # time.sleep(0.1)
         return node
 
     def expand(self, model, root=False):

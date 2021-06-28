@@ -11,11 +11,11 @@ from torch.utils.data.dataloader import DataLoader
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-TOTAL_STEPS = int(100)
-USE_TENSORBOARD = False
+NUM_GAMES = int(100)
 BATCH_SIZE = 32
 L2_REG = 1e-4
 
+tb_logger = TBLogger()
 
 def test():
     '''
@@ -92,31 +92,20 @@ def train():
     env = chess_env.ChessEnv()
     obs_dim = int(env.observation_space.shape[0] * env.observation_space.shape[1])
     n_acts = env.action_space.n
-    model = AlphaZero(env.n_planes).to(device)
+    model = AlphaZero(env.n_planes, height=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.2, weight_decay=L2_REG)
 
     obs = env.reset()
     queue = []
-    for i in range(TOTAL_STEPS):
+    for i in range(NUM_GAMES):
         data = self_play(obs, model, env, queue)
+        log.info(f'Finished game {i}')
         train_data = ChessDataset(data)
         dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
-        learn(env, model, optimizer, dataloader)
+        total_loss = learn(env, model, optimizer, dataloader)
 
-    # actors = []
-    # q = mp.Queue()
-    # for rank in range(1):
-    #     actor = mp.Process(target=self_play, args=(obs, model, env, q))
-    #     actor.start()
-    #     actors.append(actor)
-    #
-    #     while any(actor.is_alive() for actor in actors) or not q.empty():
-    #         print("Waiting for training data...")
-    #         train_data = q.get()
-    #         print("Updating the network...")
-    #         dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
-    #         learn(env, model, optimizer, dataloader)
-    #         print("Finished updating the network! ")
+        log.info(f'Total Loss for game {i} is {total_loss}')
+        tb_logger.log("Total Loss", total_loss, i)
 
 
 
