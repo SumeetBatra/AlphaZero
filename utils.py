@@ -2,6 +2,10 @@ import os
 import torch
 import torch.optim as optim
 import logging
+import logging.handlers
+import multiprocessing
+import time
+from random import random, randint
 
 from torch.utils.tensorboard import SummaryWriter
 from colorlog import ColoredFormatter
@@ -10,7 +14,7 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 
 formatter = ColoredFormatter(
-    "%(log_color)s[%(asctime)s][%(process)05d] %(message)s",
+    "%(log_color)s[%(asctime)s][%(processName)-10s] %(message)s",
     datefmt=None,
     reset=True,
     log_colors={
@@ -41,6 +45,57 @@ log.propagate = False  # workaround for duplicated logs in ipython
 log.addHandler(ch)
 log.addHandler(fh)
 
+# Because you'll want to define the logging configurations for listener and workers, the
+# listener and worker process functions take a configurer parameter which is a callable
+# for configuring logging for that process. These functions are also passed the queue,
+# which they use for communication.
+def listener_configurer():
+    log = logging.getLogger('rl')
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter)
+
+    fh = logging.FileHandler('logs/log.txt')
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    log.addHandler(ch)
+    log.addHandler(fh)
+
+# This is the listener process top-level loop: wait for logging events
+# (LogRecords)on the queue and handle them, quit when you get a None for a
+# LogRecord.
+def listener_process(queue, configurer):
+    configurer()
+    while True:
+        try:
+            record = queue.get()
+            if record is None:  # We send this as a sentinel to tell the listener to quit.
+                break
+            logger = logging.getLogger(record.name)
+            logger.handle(record)  # No level or filter logic applied - just do it!
+        except Exception:
+            import sys, traceback
+            print('Whoops! Problem:', file=sys.stderr)
+            traceback.print_exc(file=sys.stderr)
+
+# The worker configuration is done at the start of the worker process run.
+# Note that on Windows you can't rely on fork semantics, so each process
+# will run the logging configuration code when it starts.
+def worker_configurer(queue):
+    h = logging.handlers.QueueHandler(queue)  # Just the one handler needed
+    root = logging.getLogger()
+    root.addHandler(h)
+    # send all messages, for demo; no other level or filter logic applied.
+    root.setLevel(logging.DEBUG)
+
+# This is the worker process top-level loop, which just logs ten events with
+# random intervening delays before terminating.
+# The print messages are just so you know it's doing something!
+def worker_process(queue, configurer, func):
+    configurer(queue)
+    name = multiprocessing.current_process().name
+    func()
+    print('Worker finished: %s' % name)
 
 
 def save_checkpoint(cp_dir, cp_name, model, optimizer, **kwargs):
@@ -84,4 +139,3 @@ class TBLogger():
 
     def close(self):
         self.writer.close()
-

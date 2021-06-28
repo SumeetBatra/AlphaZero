@@ -1,5 +1,6 @@
 import torch.optim as optim
 import torch.multiprocessing as mp
+import multiprocessing
 
 import chess_env
 
@@ -8,6 +9,7 @@ from chess_utils import *
 from alphazero.model import AlphaZero
 
 from torch.utils.data.dataloader import DataLoader
+from utils import listener_process, listener_configurer, worker_process, worker_configurer
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -114,9 +116,24 @@ def train():
 if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0)
+    queue = multiprocessing.Queue(-1)
+    listener = multiprocessing.Process(target=listener_process,
+                                       args=(queue, listener_configurer))
+    listener.start()
+
+    workers = []
+    for _ in range(1):
+        worker = multiprocessing.Process(target=worker_process,
+                                         args=(queue, worker_configurer, train))
+        workers.append(worker)
+        worker.start()
+    for w in workers:
+        w.join()
+    queue.put_nowait(None)
+    listener.join()
     # test()
     log.info(f'Running on device: {device}')
-    train()
+    # train()
     # env = chess_env.ChessEnv()
     # board = env.board
     # model = AlphaZero(env.n_planes).to(device)

@@ -176,7 +176,7 @@ class ChessBoard(MCTSNode):
 
     def select_leaf(self):
         node = self
-        while node.visited:
+        while node.visited and not node.is_terminal():
             ##############################################
             # virtual loss
             node.visit_count = node.visit_count + 1

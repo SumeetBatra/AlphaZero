@@ -77,8 +77,9 @@ class ChessEnv(gym.Env):
         obs = board_copy
 
         rew = self.board.result()
+        rew, winner = self.process_reward(rew)
         done = self.board.is_game_over() or self.repetitions >= 3
-        info = None
+        info = {'winner': winner}
 
         return obs, rew, done, info
 
@@ -91,6 +92,24 @@ class ChessEnv(gym.Env):
         # obs = [pieces_to_id[s] for s in obs]
         # obs = np.array(obs).reshape(self.observation_space.shape)
         return obs
+
+    @staticmethod
+    def process_reward(rew):
+        '''
+        convert string representation to float value
+        :param rew: string representation from chess library
+        :return: float rew, winner
+        '''
+        if rew == '1/2-1/2':
+            rew = 0.5
+            winner = None
+        elif rew == '1-0':
+            rew = 1.0
+            winner = chess.WHITE
+        else:
+            rew = 1.0
+            winner = chess.BLACK
+        return rew, winner
 
     def render(self, mode='human'):
         print(self.board)

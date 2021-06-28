@@ -104,12 +104,16 @@ def self_play(root, model, env, queue):
         data.append(entry)
         new_root.delete_parent()  # delete tree above the new root
         log.info(f'New root: \n {new_root.board} \n fen: {new_root.board.fen()}')
-        obs, rew, done, _ = env.step(chess.Move.from_uci(action))
+        obs, rew, done, info = env.step(chess.Move.from_uci(action))
         mcts.root = new_root
     for entry in data:
+        log.info(f'Reward for game: {rew}')
         # retroactively apply rewards now that we know the terminal reward
-        entry[-1] = rew if state.color == entry[0].color else -rew
-
+        if info['winner'] is None:
+            # draw
+            entry[-1] = rew
+        else:
+            entry[-1] = rew if entry[0].color == info['winner'] else -rew
     return data
 
 
@@ -122,6 +126,7 @@ def learn(model, optimizer, dataloader, env):
         p, v = model(torch.FloatTensor(planes))
 
         optimizer.zero_grad()
+        value_loss = nn.MSELoss()(v, z)
         policy_loss = -torch.sum(p * pi)
         loss = value_loss + policy_loss
         total_loss += loss

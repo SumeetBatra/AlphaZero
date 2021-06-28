@@ -917,3 +917,985 @@
 [36m[2021-06-27 20:33:50,577][23511] Finished simulation 3[0m
 [36m[2021-06-27 20:33:50,586][23511] Finished simulation 4[0m
 [37m[01m[2021-06-28 09:51:57,709][24129] Running on device: cpu[0m
+[37m[01m[2021-06-28 10:26:17,717][24286] Running on device: cpu[0m
+[37m[01m[2021-06-28 11:16:16,111][24799] Running on device: cpu[0m
+[37m[01m[2021-06-28 11:16:17,584][24799] New root: 
+ r n b q k b n r
+p p p p p p p p
+. . . . . . . .
+. . . . . . . .
+. . . . . . . P
+. . . . . . . .
+P P P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppppp/8/8/7P/8/PPPPPPP1/RNBQKBNR b KQkq - 0 1[0m
+[37m[01m[2021-06-28 11:16:18,787][24799] New root: 
+ r n b q k b n r
+p p p p p p . p
+. . . . . . . .
+. . . . . . p .
+. . . . . . . P
+. . . . . . . .
+P P P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppp1p/8/6p1/7P/8/PPPPPPP1/RNBQKBNR w KQkq - 0 2[0m
+[37m[01m[2021-06-28 11:16:20,046][24799] New root: 
+ r n b q k b n r
+p p p p p p . p
+. . . . . . . .
+. . . . . . p .
+. . . . . . . P
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppp1p/8/6p1/7P/1P6/P1PPPPP1/RNBQKBNR b KQkq - 0 2[0m
+[37m[01m[2021-06-28 11:16:21,385][24799] New root: 
+ r n b q k b n r
+p p . p p p . p
+. . p . . . . .
+. . . . . . p .
+. . . . . . . P
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pp1ppp1p/2p5/6p1/7P/1P6/P1PPPPP1/RNBQKBNR w KQkq - 0 3[0m
+[37m[01m[2021-06-28 11:16:22,715][24799] New root: 
+ r n b q k b n r
+p p . p p p . p
+. . p . . . . .
+. . . . . . p P
+. . . . . . . .
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pp1ppp1p/2p5/6pP/8/1P6/P1PPPPP1/RNBQKBNR b KQkq - 0 3[0m
+[37m[01m[2021-06-28 11:16:24,090][24799] New root: 
+ r n b q k b n r
+. p . p p p . p
+p . p . . . . .
+. . . . . . p P
+. . . . . . . .
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/1p1ppp1p/p1p5/6pP/8/1P6/P1PPPPP1/RNBQKBNR w KQkq - 0 4[0m
+[37m[01m[2021-06-28 11:16:25,462][24799] New root: 
+ r n b q k b n r
+. p . p p p . p
+p . p . . . . .
+. . . . . . p P
+. P . . . . . .
+. . . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/1p1ppp1p/p1p5/6pP/1P6/8/P1PPPPP1/RNBQKBNR b KQkq - 0 4[0m
+[37m[01m[2021-06-28 11:16:26,828][24799] New root: 
+ r n b q k b n r
+. p . p . p . p
+p . p . . . . .
+. . . . p . p P
+. P . . . . . .
+. . . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/1p1p1p1p/p1p5/4p1pP/1P6/8/P1PPPPP1/RNBQKBNR w KQkq - 0 5[0m
+[37m[01m[2021-06-28 11:16:28,196][24799] New root: 
+ r n b q k b n r
+. p . p . p . p
+p . p . . . . .
+. . . . p . p P
+P P . . . . . .
+. . . . . . . .
+. . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/1p1p1p1p/p1p5/4p1pP/PP6/8/2PPPPP1/RNBQKBNR b KQkq - 0 5[0m
+[37m[01m[2021-06-28 11:16:29,545][24799] New root: 
+ r n b . k b n r
+. p . p q p . p
+p . p . . . . .
+. . . . p . p P
+P P . . . . . .
+. . . . . . . .
+. . P P P P P .
+R N B Q K B N R 
+ fen: rnb1kbnr/1p1pqp1p/p1p5/4p1pP/PP6/8/2PPPPP1/RNBQKBNR w KQkq - 1 6[0m
+[37m[01m[2021-06-28 11:16:30,909][24799] New root: 
+ r n b . k b n r
+. p . p q p . p
+p . p . . . . .
+. . . . p . p P
+P P . . . . P .
+. . . . . . . .
+. . P P P P . .
+R N B Q K B N R 
+ fen: rnb1kbnr/1p1pqp1p/p1p5/4p1pP/PP4P1/8/2PPPP2/RNBQKBNR b KQkq - 0 6[0m
+[37m[01m[2021-06-28 11:16:32,273][24799] New root: 
+ r n b . k b n r
+. p . p q p . .
+p . p . . . . p
+. . . . p . p P
+P P . . . . P .
+. . . . . . . .
+. . P P P P . .
+R N B Q K B N R 
+ fen: rnb1kbnr/1p1pqp2/p1p4p/4p1pP/PP4P1/8/2PPPP2/RNBQKBNR w KQkq - 0 7[0m
+[37m[01m[2021-06-28 11:17:01,463][24818] Running on device: cpu[0m
+[37m[01m[2021-06-28 11:17:02,755][24818] New root: 
+ r n b q k b n r
+p p p p p p p p
+. . . . . . . .
+. . . . . . . .
+. . . . . . . P
+. . . . . . . .
+P P P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppppp/8/8/7P/8/PPPPPPP1/RNBQKBNR b KQkq - 0 1[0m
+[37m[01m[2021-06-28 11:17:03,940][24818] New root: 
+ r n b q k b n r
+p p p p p p . p
+. . . . . . . .
+. . . . . . p .
+. . . . . . . P
+. . . . . . . .
+P P P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppp1p/8/6p1/7P/8/PPPPPPP1/RNBQKBNR w KQkq - 0 2[0m
+[37m[01m[2021-06-28 11:17:05,230][24818] New root: 
+ r n b q k b n r
+p p p p p p . p
+. . . . . . . .
+. . . . . . p .
+. . . . . . . P
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppp1p/8/6p1/7P/1P6/P1PPPPP1/RNBQKBNR b KQkq - 0 2[0m
+[37m[01m[2021-06-28 11:17:06,516][24818] New root: 
+ r n b q k b n r
+p p . p p p . p
+. . p . . . . .
+. . . . . . p .
+. . . . . . . P
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pp1ppp1p/2p5/6p1/7P/1P6/P1PPPPP1/RNBQKBNR w KQkq - 0 3[0m
+[37m[01m[2021-06-28 11:17:07,943][24818] New root: 
+ r n b q k b n r
+p p . p p p . p
+. . p . . . . .
+. . . . . . p P
+. . . . . . . .
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pp1ppp1p/2p5/6pP/8/1P6/P1PPPPP1/RNBQKBNR b KQkq - 0 3[0m
+[37m[01m[2021-06-28 11:17:09,283][24818] New root: 
+ r n b q k b n r
+. p . p p p . p
+p . p . . . . .
+. . . . . . p P
+. . . . . . . .
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/1p1ppp1p/p1p5/6pP/8/1P6/P1PPPPP1/RNBQKBNR w KQkq - 0 4[0m
+[37m[01m[2021-06-28 11:18:36,930][MainProcess] Running on device: cpu[0m
+[37m[01m[2021-06-28 11:18:38,298][MainProcess] New root: 
+ r n b q k b n r
+p p p p p p p p
+. . . . . . . .
+. . . . . . . .
+. . . . . . . P
+. . . . . . . .
+P P P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppppp/8/8/7P/8/PPPPPPP1/RNBQKBNR b KQkq - 0 1[0m
+[37m[01m[2021-06-28 11:18:39,486][MainProcess] New root: 
+ r n b q k b n r
+p p p p p p . p
+. . . . . . . .
+. . . . . . p .
+. . . . . . . P
+. . . . . . . .
+P P P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppp1p/8/6p1/7P/8/PPPPPPP1/RNBQKBNR w KQkq - 0 2[0m
+[37m[01m[2021-06-28 11:18:40,745][MainProcess] New root: 
+ r n b q k b n r
+p p p p p p . p
+. . . . . . . .
+. . . . . . p .
+. . . . . . . P
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppp1p/8/6p1/7P/1P6/P1PPPPP1/RNBQKBNR b KQkq - 0 2[0m
+[37m[01m[2021-06-28 11:18:42,136][MainProcess] New root: 
+ r n b q k b n r
+p p . p p p . p
+. . p . . . . .
+. . . . . . p .
+. . . . . . . P
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pp1ppp1p/2p5/6p1/7P/1P6/P1PPPPP1/RNBQKBNR w KQkq - 0 3[0m
+[37m[01m[2021-06-28 11:18:43,557][MainProcess] New root: 
+ r n b q k b n r
+p p . p p p . p
+. . p . . . . .
+. . . . . . p P
+. . . . . . . .
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/pp1ppp1p/2p5/6pP/8/1P6/P1PPPPP1/RNBQKBNR b KQkq - 0 3[0m
+[37m[01m[2021-06-28 11:18:44,913][MainProcess] New root: 
+ r n b q k b n r
+. p . p p p . p
+p . p . . . . .
+. . . . . . p P
+. . . . . . . .
+. P . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/1p1ppp1p/p1p5/6pP/8/1P6/P1PPPPP1/RNBQKBNR w KQkq - 0 4[0m
+[37m[01m[2021-06-28 11:18:46,269][MainProcess] New root: 
+ r n b q k b n r
+. p . p p p . p
+p . p . . . . .
+. . . . . . p P
+. P . . . . . .
+. . . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/1p1ppp1p/p1p5/6pP/1P6/8/P1PPPPP1/RNBQKBNR b KQkq - 0 4[0m
+[37m[01m[2021-06-28 11:18:47,707][MainProcess] New root: 
+ r n b q k b n r
+. p . p . p . p
+p . p . . . . .
+. . . . p . p P
+. P . . . . . .
+. . . . . . . .
+P . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/1p1p1p1p/p1p5/4p1pP/1P6/8/P1PPPPP1/RNBQKBNR w KQkq - 0 5[0m
+[37m[01m[2021-06-28 11:18:49,177][MainProcess] New root: 
+ r n b q k b n r
+. p . p . p . p
+p . p . . . . .
+. . . . p . p P
+P P . . . . . .
+. . . . . . . .
+. . P P P P P .
+R N B Q K B N R 
+ fen: rnbqkbnr/1p1p1p1p/p1p5/4p1pP/PP6/8/2PPPPP1/RNBQKBNR b KQkq - 0 5[0m
+[37m[01m[2021-06-28 11:27:40,746][MainProcess] Running on device: cpu[0m
+[37m[01m[2021-06-28 11:30:14,160][Process-2 ] New root: 
+ r n b q k b n r
+p p p p p p p p
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . N
+P P P P P P P P
+R N B Q K B . R 
+ fen: rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq - 1 1[0m
+[37m[01m[2021-06-28 11:30:15,352][Process-2 ] New root: 
+ r . b q k b n r
+p p p p p p p p
+. . n . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . N
+P P P P P P P P
+R N B Q K B . R 
+ fen: r1bqkbnr/pppppppp/2n5/8/8/7N/PPPPPPPP/RNBQKB1R w KQkq - 2 2[0m
+[37m[01m[2021-06-28 11:30:16,600][Process-2 ] New root: 
+ r . b q k b n r
+p p p p p p p p
+. . n . . . . .
+. . . . . . N .
+. . . . . . . .
+. . . . . . . .
+P P P P P P P P
+R N B Q K B . R 
+ fen: r1bqkbnr/pppppppp/2n5/6N1/8/8/PPPPPPPP/RNBQKB1R b KQkq - 3 2[0m
+[37m[01m[2021-06-28 11:30:17,882][Process-2 ] New root: 
+ r . b q k b n r
+p p p p p p p p
+. . . . . . . .
+. . . . n . N .
+. . . . . . . .
+. . . . . . . .
+P P P P P P P P
+R N B Q K B . R 
+ fen: r1bqkbnr/pppppppp/8/4n1N1/8/8/PPPPPPPP/RNBQKB1R w KQkq - 4 3[0m
+[37m[01m[2021-06-28 11:30:19,221][Process-2 ] New root: 
+ r . b q k b n r
+p p p p p p p N
+. . . . . . . .
+. . . . n . . .
+. . . . . . . .
+. . . . . . . .
+P P P P P P P P
+R N B Q K B . R 
+ fen: r1bqkbnr/pppppppN/8/4n3/8/8/PPPPPPPP/RNBQKB1R b KQkq - 0 3[0m
+[37m[01m[2021-06-28 11:30:20,632][Process-2 ] New root: 
+ r . b q k b n r
+p . p p p p p N
+. . . . . . . .
+. p . . n . . .
+. . . . . . . .
+. . . . . . . .
+P P P P P P P P
+R N B Q K B . R 
+ fen: r1bqkbnr/p1pppppN/8/1p2n3/8/8/PPPPPPPP/RNBQKB1R w KQkq - 0 4[0m
+[37m[01m[2021-06-28 11:30:22,036][Process-2 ] New root: 
+ r . b q k b n r
+p . p p p p p N
+. . . . . . . .
+. p . . n . . .
+. . . . . . . .
+. . . . . P . .
+P P P P P . P P
+R N B Q K B . R 
+ fen: r1bqkbnr/p1pppppN/8/1p2n3/8/5P2/PPPPP1PP/RNBQKB1R b KQkq - 0 4[0m
+[37m[01m[2021-06-28 11:30:23,427][Process-2 ] New root: 
+ r . b q k b n .
+p . p p p p p r
+. . . . . . . .
+. p . . n . . .
+. . . . . . . .
+. . . . . P . .
+P P P P P . P P
+R N B Q K B . R 
+ fen: r1bqkbn1/p1pppppr/8/1p2n3/8/5P2/PPPPP1PP/RNBQKB1R w KQq - 0 5[0m
+[37m[01m[2021-06-28 11:30:24,788][Process-2 ] New root: 
+ r . b q k b n .
+p . p p p p p r
+. . . . . . . .
+. p . . n . . .
+. . . . . . P .
+. . . . . P . .
+P P P P P . . P
+R N B Q K B . R 
+ fen: r1bqkbn1/p1pppppr/8/1p2n3/6P1/5P2/PPPPP2P/RNBQKB1R b KQq - 0 5[0m
+[37m[01m[2021-06-28 11:30:26,146][Process-2 ] New root: 
+ r . b q k b n .
+p . p p p p . r
+. . . . . . . .
+. p . . n . p .
+. . . . . . P .
+. . . . . P . .
+P P P P P . . P
+R N B Q K B . R 
+ fen: r1bqkbn1/p1pppp1r/8/1p2n1p1/6P1/5P2/PPPPP2P/RNBQKB1R w KQq - 0 6[0m
+[37m[01m[2021-06-28 11:30:27,479][Process-2 ] New root: 
+ r . b q k b n .
+p . p p p p . r
+. . . . . . . .
+. p . . n . p .
+. . . . . . P .
+. . P . . P . .
+P P . P P . . P
+R N B Q K B . R 
+ fen: r1bqkbn1/p1pppp1r/8/1p2n1p1/6P1/2P2P2/PP1PP2P/RNBQKB1R b KQq - 0 6[0m
+[37m[01m[2021-06-28 11:30:28,823][Process-2 ] New root: 
+ r . b q k b n .
+p . p . p p . r
+. . . p . . . .
+. p . . n . p .
+. . . . . . P .
+. . P . . P . .
+P P . P P . . P
+R N B Q K B . R 
+ fen: r1bqkbn1/p1p1pp1r/3p4/1p2n1p1/6P1/2P2P2/PP1PP2P/RNBQKB1R w KQq - 0 7[0m
+[37m[01m[2021-06-28 11:30:30,173][Process-2 ] New root: 
+ r . b q k b n .
+p . p . p p . r
+. . . p . . . .
+. p . . n . p .
+. . P . . . P .
+. . . . . P . .
+P P . P P . . P
+R N B Q K B . R 
+ fen: r1bqkbn1/p1p1pp1r/3p4/1p2n1p1/2P3P1/5P2/PP1PP2P/RNBQKB1R b KQq - 0 7[0m
+[37m[01m[2021-06-28 11:30:31,503][Process-2 ] New root: 
+ r . . q k b n .
+p b p . p p . r
+. . . p . . . .
+. p . . n . p .
+. . P . . . P .
+. . . . . P . .
+P P . P P . . P
+R N B Q K B . R 
+ fen: r2qkbn1/pbp1pp1r/3p4/1p2n1p1/2P3P1/5P2/PP1PP2P/RNBQKB1R w KQq - 1 8[0m
+[37m[01m[2021-06-28 11:30:32,865][Process-2 ] New root: 
+ r . . q k b n .
+p b p . p p . r
+. . . p . . . .
+. p . . n . p .
+. . P . . . P .
+. . . . P P . .
+P P . P . . . P
+R N B Q K B . R 
+ fen: r2qkbn1/pbp1pp1r/3p4/1p2n1p1/2P3P1/4PP2/PP1P3P/RNBQKB1R b KQq - 0 8[0m
+[37m[01m[2021-06-28 11:30:34,197][Process-2 ] New root: 
+ r . . q k b n .
+p b p . p p . .
+. . . p . . . .
+. p . . n . p .
+. . P . . . P .
+. . . . P P . .
+P P . P . . . r
+R N B Q K B . R 
+ fen: r2qkbn1/pbp1pp2/3p4/1p2n1p1/2P3P1/4PP2/PP1P3r/RNBQKB1R w KQq - 0 9[0m
+[37m[01m[2021-06-28 11:30:35,540][Process-2 ] New root: 
+ r . . q k b n .
+p b p . p p . .
+. . . p . . . .
+. p . . n . p .
+. . P . . . P .
+P . . . P P . .
+. P . P . . . r
+R N B Q K B . R 
+ fen: r2qkbn1/pbp1pp2/3p4/1p2n1p1/2P3P1/P3PP2/1P1P3r/RNBQKB1R b KQq - 0 9[0m
+[37m[01m[2021-06-28 11:30:36,890][Process-2 ] New root: 
+ r . . q k b n .
+p b . . p p . .
+. . p p . . . .
+. p . . n . p .
+. . P . . . P .
+P . . . P P . .
+. P . P . . . r
+R N B Q K B . R 
+ fen: r2qkbn1/pb2pp2/2pp4/1p2n1p1/2P3P1/P3PP2/1P1P3r/RNBQKB1R w KQq - 0 10[0m
+[37m[01m[2021-06-28 11:30:38,226][Process-2 ] New root: 
+ r . . q k b n .
+p b . . p p . .
+. . p p . . . .
+. p . . n . p .
+. . P P . . P .
+P . . . P P . .
+. P . . . . . r
+R N B Q K B . R 
+ fen: r2qkbn1/pb2pp2/2pp4/1p2n1p1/2PP2P1/P3PP2/1P5r/RNBQKB1R b KQq - 0 10[0m
+[37m[01m[2021-06-28 11:30:39,591][Process-2 ] New root: 
+ r . . q k b n r
+p b . . p p . .
+. . p p . . . .
+. p . . n . p .
+. . P P . . P .
+P . . . P P . .
+. P . . . . . .
+R N B Q K B . R 
+ fen: r2qkbnr/pb2pp2/2pp4/1p2n1p1/2PP2P1/P3PP2/1P6/RNBQKB1R w KQq - 1 11[0m
+[37m[01m[2021-06-28 11:30:40,924][Process-2 ] New root: 
+ r . . q k b n r
+p b . . p p . .
+. . p p . . . .
+. p . . n . p .
+. . P P . . P .
+P . . . P P . .
+. P . . . K . .
+R N B Q . B . R 
+ fen: r2qkbnr/pb2pp2/2pp4/1p2n1p1/2PP2P1/P3PP2/1P3K2/RNBQ1B1R b q - 2 11[0m
+[37m[01m[2021-06-28 11:30:42,255][Process-2 ] New root: 
+ r . . q k b n r
+p b . . p p . .
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . P P . .
+. P . . . K . .
+R N B Q . B . R 
+ fen: r2qkbnr/pb2pp2/2pp2n1/1p4p1/2PP2P1/P3PP2/1P3K2/RNBQ1B1R w q - 3 12[0m
+[37m[01m[2021-06-28 11:30:43,588][Process-2 ] New root: 
+ r . . q k b n r
+p b . . p p . .
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . P P K .
+. P . . . . . .
+R N B Q . B . R 
+ fen: r2qkbnr/pb2pp2/2pp2n1/1p4p1/2PP2P1/P3PPK1/1P6/RNBQ1B1R b q - 4 12[0m
+[37m[01m[2021-06-28 11:30:44,935][Process-2 ] New root: 
+ r . . q k . n r
+p b . . p p b .
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . P P K .
+. P . . . . . .
+R N B Q . B . R 
+ fen: r2qk1nr/pb2ppb1/2pp2n1/1p4p1/2PP2P1/P3PPK1/1P6/RNBQ1B1R w q - 5 13[0m
+[37m[01m[2021-06-28 11:30:46,340][Process-2 ] New root: 
+ r . . q k . n r
+p b . . p p b .
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . P P K .
+. P . . Q . . .
+R N B . . B . R 
+ fen: r2qk1nr/pb2ppb1/2pp2n1/1p4p1/2PP2P1/P3PPK1/1P2Q3/RNB2B1R b q - 6 13[0m
+[37m[01m[2021-06-28 11:30:47,704][Process-2 ] New root: 
+ r . . q k . n .
+p b . . p p b r
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . P P K .
+. P . . Q . . .
+R N B . . B . R 
+ fen: r2qk1n1/pb2ppbr/2pp2n1/1p4p1/2PP2P1/P3PPK1/1P2Q3/RNB2B1R w q - 7 14[0m
+[37m[01m[2021-06-28 11:30:49,075][Process-2 ] New root: 
+ r . . q k . n .
+p b . . p p b r
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . P P K .
+. P . . Q . . .
+R N B . . B R . 
+ fen: r2qk1n1/pb2ppbr/2pp2n1/1p4p1/2PP2P1/P3PPK1/1P2Q3/RNB2BR1 b q - 8 14[0m
+[37m[01m[2021-06-28 11:30:50,426][Process-2 ] New root: 
+ r . . q k . n b
+p b . . p p . r
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . P P K .
+. P . . Q . . .
+R N B . . B R . 
+ fen: r2qk1nb/pb2pp1r/2pp2n1/1p4p1/2PP2P1/P3PPK1/1P2Q3/RNB2BR1 w q - 9 15[0m
+[37m[01m[2021-06-28 11:30:51,788][Process-2 ] New root: 
+ r . . q k . n b
+p b . . p p . r
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . P P K .
+R P . . Q . . .
+. N B . . B R . 
+ fen: r2qk1nb/pb2pp1r/2pp2n1/1p4p1/2PP2P1/P3PPK1/RP2Q3/1NB2BR1 b q - 10 15[0m
+[37m[01m[2021-06-28 11:30:53,161][Process-2 ] New root: 
+ r . . q k . n .
+p b . . p p . r
+. . p p . . n .
+. p . . . . p .
+. . P b . . P .
+P . . . P P K .
+R P . . Q . . .
+. N B . . B R . 
+ fen: r2qk1n1/pb2pp1r/2pp2n1/1p4p1/2Pb2P1/P3PPK1/RP2Q3/1NB2BR1 w q - 0 16[0m
+[37m[01m[2021-06-28 11:30:54,562][Process-2 ] New root: 
+ r . . q k . n .
+p b . . p p . r
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . . P K .
+R P . . Q . . .
+. N B . . B R . 
+ fen: r2qk1n1/pb2pp1r/2pp2n1/1p4p1/2PP2P1/P4PK1/RP2Q3/1NB2BR1 b q - 0 16[0m
+[37m[01m[2021-06-28 11:30:55,922][Process-2 ] New root: 
+ r . . q k . n .
+p b . . p p r .
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . . P K .
+R P . . Q . . .
+. N B . . B R . 
+ fen: r2qk1n1/pb2ppr1/2pp2n1/1p4p1/2PP2P1/P4PK1/RP2Q3/1NB2BR1 w q - 1 17[0m
+[37m[01m[2021-06-28 11:30:57,268][Process-2 ] New root: 
+ r . . q k . n .
+p b . . p p r .
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . . P K .
+R P . . . . . Q
+. N B . . B R . 
+ fen: r2qk1n1/pb2ppr1/2pp2n1/1p4p1/2PP2P1/P4PK1/RP5Q/1NB2BR1 b q - 2 17[0m
+[37m[01m[2021-06-28 11:30:58,638][Process-2 ] New root: 
+ . r . q k . n .
+p b . . p p r .
+. . p p . . n .
+. p . . . . p .
+. . P P . . P .
+P . . . . P K .
+R P . . . . . Q
+. N B . . B R . 
+ fen: 1r1qk1n1/pb2ppr1/2pp2n1/1p4p1/2PP2P1/P4PK1/RP5Q/1NB2BR1 w - - 3 18[0m
+[37m[01m[2021-06-28 11:31:00,004][Process-2 ] New root: 
+ . r . q k . n .
+p b . . p p r .
+. . p p . . n .
+. p P . . . p .
+. . . P . . P .
+P . . . . P K .
+R P . . . . . Q
+. N B . . B R . 
+ fen: 1r1qk1n1/pb2ppr1/2pp2n1/1pP3p1/3P2P1/P4PK1/RP5Q/1NB2BR1 b - - 0 18[0m
+[37m[01m[2021-06-28 11:31:01,378][Process-2 ] New root: 
+ . r . q k . n .
+p b . . p . r .
+. . p p . . n .
+. p P . . p p .
+. . . P . . P .
+P . . . . P K .
+R P . . . . . Q
+. N B . . B R . 
+ fen: 1r1qk1n1/pb2p1r1/2pp2n1/1pP2pp1/3P2P1/P4PK1/RP5Q/1NB2BR1 w - - 0 19[0m
+[37m[01m[2021-06-28 11:31:02,734][Process-2 ] New root: 
+ . r . q k . n .
+p b . . p . r .
+. . p p . . n .
+. p P . . p p .
+. . . P . . P .
+P . . . . P K .
+R P . N . . . Q
+. . B . . B R . 
+ fen: 1r1qk1n1/pb2p1r1/2pp2n1/1pP2pp1/3P2P1/P4PK1/RP1N3Q/2B2BR1 b - - 1 19[0m
+[37m[01m[2021-06-28 11:31:04,150][Process-2 ] New root: 
+ . r . q k . n .
+p b . . p . r .
+. . p p . . n .
+. p P . . . p .
+. . . P . . p .
+P . . . . P K .
+R P . N . . . Q
+. . B . . B R . 
+ fen: 1r1qk1n1/pb2p1r1/2pp2n1/1pP3p1/3P2p1/P4PK1/RP1N3Q/2B2BR1 w - - 0 20[0m
+[37m[01m[2021-06-28 11:31:05,560][Process-2 ] New root: 
+ . r . q k . n .
+p b . . p . r .
+. . p p . . n .
+. p P . . . p .
+. . . P . . p .
+P . . . . P K Q
+R P . N . . . .
+. . B . . B R . 
+ fen: 1r1qk1n1/pb2p1r1/2pp2n1/1pP3p1/3P2p1/P4PKQ/RP1N4/2B2BR1 b - - 1 20[0m
+[37m[01m[2021-06-28 11:31:06,967][Process-2 ] New root: 
+ . r . q k . n .
+p b . . p . r .
+. . p p . . n .
+. . P . . . p .
+. p . P . . p .
+P . . . . P K Q
+R P . N . . . .
+. . B . . B R . 
+ fen: 1r1qk1n1/pb2p1r1/2pp2n1/2P3p1/1p1P2p1/P4PKQ/RP1N4/2B2BR1 w - - 0 21[0m
+[37m[01m[2021-06-28 11:31:08,410][Process-2 ] New root: 
+ . r . q k . n .
+p b . . p . r .
+. . p p . . n .
+. . P . . . p .
+. p . P . . p .
+P . . B . P K Q
+R P . N . . . .
+. . B . . . R . 
+ fen: 1r1qk1n1/pb2p1r1/2pp2n1/2P3p1/1p1P2p1/P2B1PKQ/RP1N4/2B3R1 b - - 1 21[0m
+[37m[01m[2021-06-28 11:31:09,886][Process-2 ] New root: 
+ . r . q k . n .
+. b . . p . r .
+p . p p . . n .
+. . P . . . p .
+. p . P . . p .
+P . . B . P K Q
+R P . N . . . .
+. . B . . . R . 
+ fen: 1r1qk1n1/1b2p1r1/p1pp2n1/2P3p1/1p1P2p1/P2B1PKQ/RP1N4/2B3R1 w - - 0 22[0m
+[37m[01m[2021-06-28 11:31:11,495][Process-2 ] New root: 
+ . r . q k . n .
+. b . . p . r .
+p . p p . . n .
+. . P . . . p .
+. p . P . . p .
+P . . B . P K Q
+R P . . . . . .
+. N B . . . R . 
+ fen: 1r1qk1n1/1b2p1r1/p1pp2n1/2P3p1/1p1P2p1/P2B1PKQ/RP6/1NB3R1 b - - 1 22[0m
+[37m[01m[2021-06-28 11:31:13,184][Process-2 ] New root: 
+ . r . . k . n .
+. b . . p . r .
+p q p p . . n .
+. . P . . . p .
+. p . P . . p .
+P . . B . P K Q
+R P . . . . . .
+. N B . . . R . 
+ fen: 1r2k1n1/1b2p1r1/pqpp2n1/2P3p1/1p1P2p1/P2B1PKQ/RP6/1NB3R1 w - - 2 23[0m
+[37m[01m[2021-06-28 11:31:18,944][Process-2 ] New root: 
+ r n b q k b n r
+p p p p p p p p
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+P . . . . . . .
+. P P P P P P P
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq - 0 1[0m
+[36m[2021-06-28 11:31:18,944][Process-2 ] DIFFERENT??[0m
+[37m[01m[2021-06-28 11:31:20,135][Process-2 ] New root: 
+ r n b q k b n r
+p p p p p . p p
+. . . . . p . .
+. . . . . . . .
+. . . . . . . .
+P . . . . . . .
+. P P P P P P P
+R N B Q K B N R 
+ fen: rnbqkbnr/ppppp1pp/5p2/8/8/P7/1PPPPPPP/RNBQKBNR w KQkq - 0 2[0m
+[36m[2021-06-28 11:31:20,135][Process-2 ] DIFFERENT??[0m
+[37m[01m[2021-06-28 11:31:21,410][Process-2 ] New root: 
+ r n b q k b n r
+p p p p p . p p
+. . . . . p . .
+. . . . . . . .
+. . . . . . . .
+P . P . . . . .
+. P . P P P P P
+R N B Q K B N R 
+ fen: rnbqkbnr/ppppp1pp/5p2/8/8/P1P5/1P1PPPPP/RNBQKBNR b KQkq - 0 2[0m
+[36m[2021-06-28 11:31:21,411][Process-2 ] DIFFERENT??[0m
+[37m[01m[2021-06-28 11:31:22,803][Process-2 ] New root: 
+ r n b q k b n r
+. p p p p . p p
+. . . . . p . .
+p . . . . . . .
+. . . . . . . .
+P . P . . . . .
+. P . P P P P P
+R N B Q K B N R 
+ fen: rnbqkbnr/1pppp1pp/5p2/p7/8/P1P5/1P1PPPPP/RNBQKBNR w KQkq - 0 3[0m
+[36m[2021-06-28 11:31:22,803][Process-2 ] DIFFERENT??[0m
+[37m[01m[2021-06-28 11:31:24,431][Process-2 ] New root: 
+ r n b q k b n r
+. p p p p . p p
+. . . . . p . .
+p . . . . . . .
+. . . . . . P .
+P . P . . . . .
+. P . P P P . P
+R N B Q K B N R 
+ fen: rnbqkbnr/1pppp1pp/5p2/p7/6P1/P1P5/1P1PPP1P/RNBQKBNR b KQkq - 0 3[0m
+[36m[2021-06-28 11:31:24,432][Process-2 ] DIFFERENT??[0m
+[37m[01m[2021-06-28 11:31:25,849][Process-2 ] New root: 
+ r n b q k b . r
+. p p p p . p p
+. . . . . p . n
+p . . . . . . .
+. . . . . . P .
+P . P . . . . .
+. P . P P P . P
+R N B Q K B N R 
+ fen: rnbqkb1r/1pppp1pp/5p1n/p7/6P1/P1P5/1P1PPP1P/RNBQKBNR w KQkq - 1 4[0m
+[36m[2021-06-28 11:31:25,849][Process-2 ] DIFFERENT??[0m
+[37m[01m[2021-06-28 11:31:27,231][Process-2 ] New root: 
+ r n b q k b . r
+. p p p p . p p
+. . . . . p . n
+p . . . . . . .
+. . . . . . P P
+P . P . . . . .
+. P . P P P . .
+R N B Q K B N R 
+ fen: rnbqkb1r/1pppp1pp/5p1n/p7/6PP/P1P5/1P1PPP2/RNBQKBNR b KQkq - 0 4[0m
+[36m[2021-06-28 11:31:27,231][Process-2 ] DIFFERENT??[0m
+[37m[01m[2021-06-28 11:33:15,915][Process-3 ] New root: 
+ r n b q k b n r
+p p p p p p p p
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . N
+P P P P P P P P
+R N B Q K B . R 
+ fen: rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq - 1 1[0m
+[37m[01m[2021-06-28 11:33:15,923][Process-2 ] New root: 
+ r n b q k b n r
+p p p p p p p p
+. . . . . . . .
+. . . . . . . .
+. P . . . . . .
+. . . . . . . .
+P . P P P P P P
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppppp/8/8/1P6/8/P1PPPPPP/RNBQKBNR b KQkq - 0 1[0m
+[37m[01m[2021-06-28 11:33:17,244][Process-3 ] New root: 
+ r n b q k b n r
+p . p p p p p p
+. p . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . . . . . N
+P P P P P P P P
+R N B Q K B . R 
+ fen: rnbqkbnr/p1pppppp/1p6/8/8/7N/PPPPPPPP/RNBQKB1R w KQkq - 0 2[0m
+[37m[01m[2021-06-28 11:33:17,247][Process-2 ] New root: 
+ r n b q k b n r
+p p p . p p p p
+. . . p . . . .
+. . . . . . . .
+. P . . . . . .
+. . . . . . . .
+P . P P P P P P
+R N B Q K B N R 
+ fen: rnbqkbnr/ppp1pppp/3p4/8/1P6/8/P1PPPPPP/RNBQKBNR w KQkq - 0 2[0m
+[37m[01m[2021-06-28 11:33:18,621][Process-3 ] New root: 
+ r n b q k b n r
+p . p p p p p p
+. p . . . . . .
+. . . . . . . .
+. . P . . . . .
+. . . . . . . N
+P P . P P P P P
+R N B Q K B . R 
+ fen: rnbqkbnr/p1pppppp/1p6/8/2P5/7N/PP1PPPPP/RNBQKB1R b KQkq - 0 2[0m
+[37m[01m[2021-06-28 11:33:18,629][Process-2 ] New root: 
+ r n b q k b n r
+p p p . p p p p
+. . . p . . . .
+. . . . . . . .
+. P . . . . . .
+. . . . . P . .
+P . P P P . P P
+R N B Q K B N R 
+ fen: rnbqkbnr/ppp1pppp/3p4/8/1P6/5P2/P1PPP1PP/RNBQKBNR b KQkq - 0 2[0m
+[37m[01m[2021-06-28 11:33:20,116][Process-3 ] New root: 
+ r n b q k b n r
+p . p p . p p p
+. p . . . . . .
+. . . . p . . .
+. . P . . . . .
+. . . . . . . N
+P P . P P P P P
+R N B Q K B . R 
+ fen: rnbqkbnr/p1pp1ppp/1p6/4p3/2P5/7N/PP1PPPPP/RNBQKB1R w KQkq - 0 3[0m
+[37m[01m[2021-06-28 11:33:20,124][Process-2 ] New root: 
+ r n b q k b n r
+p p p . p p . p
+. . . p . . . .
+. . . . . . p .
+. P . . . . . .
+. . . . . P . .
+P . P P P . P P
+R N B Q K B N R 
+ fen: rnbqkbnr/ppp1pp1p/3p4/6p1/1P6/5P2/P1PPP1PP/RNBQKBNR w KQkq - 0 3[0m
+[37m[01m[2021-06-28 11:33:21,659][Process-3 ] New root: 
+ r n b q k b n r
+p . p p . p p p
+. p . . . . . .
+. . . . p . . .
+. . P . . . . .
+N . . . . . . N
+P P . P P P P P
+R . B Q K B . R 
+ fen: rnbqkbnr/p1pp1ppp/1p6/4p3/2P5/N6N/PP1PPPPP/R1BQKB1R b KQkq - 1 3[0m
+[37m[01m[2021-06-28 11:33:21,667][Process-2 ] New root: 
+ r n b q k b n r
+p p p . p p . p
+. . . p . . . .
+. . . . . . p .
+. P . . . . . .
+. . N . . P . .
+P . P P P . P P
+R . B Q K B N R 
+ fen: rnbqkbnr/ppp1pp1p/3p4/6p1/1P6/2N2P2/P1PPP1PP/R1BQKBNR b KQkq - 1 3[0m
+[37m[01m[2021-06-28 11:33:23,206][Process-3 ] New root: 
+ r n b q k b n r
+p . p p . p p p
+. p . . . . . .
+. . . . . . . .
+. . P . p . . .
+N . . . . . . N
+P P . P P P P P
+R . B Q K B . R 
+ fen: rnbqkbnr/p1pp1ppp/1p6/8/2P1p3/N6N/PP1PPPPP/R1BQKB1R w KQkq - 0 4[0m
+[37m[01m[2021-06-28 11:33:23,213][Process-2 ] New root: 
+ r n b q k b n r
+. p p . p p . p
+. . . p . . . .
+p . . . . . p .
+. P . . . . . .
+. . N . . P . .
+P . P P P . P P
+R . B Q K B N R 
+ fen: rnbqkbnr/1pp1pp1p/3p4/p5p1/1P6/2N2P2/P1PPP1PP/R1BQKBNR w KQkq - 0 4[0m
+[37m[01m[2021-06-28 11:33:24,708][Process-3 ] New root: 
+ r n b q k b n r
+p . p p . p p p
+. p . . . . . .
+. . . . . . . .
+. . P . p . . .
+N P . . . . . N
+P . . P P P P P
+R . B Q K B . R 
+ fen: rnbqkbnr/p1pp1ppp/1p6/8/2P1p3/NP5N/P2PPPPP/R1BQKB1R b KQkq - 0 4[0m
+[37m[01m[2021-06-28 11:33:24,716][Process-2 ] New root: 
+ r n b q k b n r
+. p p . p p . p
+. . . p . . . .
+p . . . . . p .
+. P . . . . . .
+. . N . . P P .
+P . P P P . . P
+R . B Q K B N R 
+ fen: rnbqkbnr/1pp1pp1p/3p4/p5p1/1P6/2N2PP1/P1PPP2P/R1BQKBNR b KQkq - 0 4[0m
+[37m[01m[2021-06-28 11:33:26,182][Process-3 ] New root: 
+ r n b q k b n r
+p . p p . p . p
+. p . . . . . .
+. . . . . . p .
+. . P . p . . .
+N P . . . . . N
+P . . P P P P P
+R . B Q K B . R 
+ fen: rnbqkbnr/p1pp1p1p/1p6/6p1/2P1p3/NP5N/P2PPPPP/R1BQKB1R w KQkq - 0 5[0m
+[37m[01m[2021-06-28 11:33:26,189][Process-2 ] New root: 
+ r n b q k b n r
+. . p . p p . p
+. . . p . . . .
+p p . . . . p .
+. P . . . . . .
+. . N . . P P .
+P . P P P . . P
+R . B Q K B N R 
+ fen: rnbqkbnr/2p1pp1p/3p4/pp4p1/1P6/2N2PP1/P1PPP2P/R1BQKBNR w KQkq - 0 5[0m
+[37m[01m[2021-06-28 11:33:38,353][Process-2 ] New root: 
+ r n b q k b n r
+p p p p p p p p
+. . . . . . . .
+. . . . . . . .
+. . . . . . . .
+. . . P . . . .
+P P P . P P P P
+R N B Q K B N R 
+ fen: rnbqkbnr/pppppppp/8/8/8/3P4/PPP1PPPP/RNBQKBNR b KQkq - 0 1[0m
+[37m[01m[2021-06-28 11:33:39,581][Process-2 ] New root: 
+ r n b q k b n r
+p p p p p p p .
+. . . . . . . p
+. . . . . . . .
+. . . . . . . .
+. . . P . . . .
+P P P . P P P P
+R N B Q K B N R 
+ fen: rnbqkbnr/ppppppp1/7p/8/8/3P4/PPP1PPPP/RNBQKBNR w KQkq - 0 2[0m
+[37m[01m[2021-06-28 11:33:40,849][Process-2 ] New root: 
+ r n b q k b n r
+p p p p p p p .
+. . . . . . . p
+. . . . . . . .
+. . . . . . . .
+. . . P . . . N
+P P P . P P P P
+R N B Q K B . R 
+ fen: rnbqkbnr/ppppppp1/7p/8/8/3P3N/PPP1PPPP/RNBQKB1R b KQkq - 1 2[0m
