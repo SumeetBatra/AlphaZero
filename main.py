@@ -1,6 +1,5 @@
 import torch.optim as optim
 import torch.multiprocessing as mp
-import multiprocessing
 
 import chess_env
 
@@ -116,14 +115,14 @@ def train():
 if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0)
-    queue = multiprocessing.Queue(-1)
-    listener = multiprocessing.Process(target=listener_process,
+    queue = mp.Queue(-1)
+    listener = mp.Process(target=listener_process,
                                        args=(queue, listener_configurer))
     listener.start()
 
     workers = []
     for _ in range(1):
-        worker = multiprocessing.Process(target=worker_process,
+        worker = mp.Process(target=worker_process,
                                          args=(queue, worker_configurer, train))
         workers.append(worker)
         worker.start()

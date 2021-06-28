@@ -30,8 +30,9 @@ formatter = ColoredFormatter(
 )
 ch.setFormatter(formatter)
 
-if not os.path.isfile('logs/log.txt'):
+if not os.path.isdir('logs'):
     os.makedirs('logs')
+if not os.path.isfile('logs/log.txt'):
     file = open('logs/log.txt', 'w+')
 
 fh = logging.FileHandler('logs/log.txt')
