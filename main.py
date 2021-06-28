@@ -11,7 +11,7 @@ from torch.utils.data.dataloader import DataLoader
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-NUM_GAMES = int(100)
+NUM_GAMES = int(1000)
 BATCH_SIZE = 32
 L2_REG = 1e-4
 

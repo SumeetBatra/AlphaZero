@@ -13,7 +13,7 @@ from chess_utils import ChessDataset
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TIMESTEPS = 8
 M = 13  # From AlphaZero: we have NxN (MT + L) layers. In the paper, M=14 cuz of repetitions=2 instead of 1 for whatever reason
-SIMULATIONS = 5
+SIMULATIONS = 200
 logger = TBLogger()
 
 
@@ -121,7 +121,6 @@ def learn(model, optimizer, dataloader, env):
         p, v = model(torch.FloatTensor(planes))
 
         optimizer.zero_grad()
-        value_loss = nn.MSELoss()(v, z)
         policy_loss = -torch.sum(p * pi)
         loss = value_loss + policy_loss
         total_loss += loss
