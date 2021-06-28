@@ -18,6 +18,8 @@ L2_REG = 1e-4
 
 tb_logger = TBLogger()
 
+torch.multiprocessing.set_start_method('spawn', force=True)
+
 def test():
     '''
     Code for testing things out
