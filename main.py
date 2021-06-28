@@ -105,7 +105,7 @@ def train():
         log.info(f'Finished game {i}')
         train_data = ChessDataset(data)
         dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
-        total_loss = learn(env, model, optimizer, dataloader)
+        total_loss = learn(model, optimizer, dataloader, env)
 
         log.info(f'Total Loss for game {i} is {total_loss}')
         tb_logger.log("Total Loss", total_loss, i)

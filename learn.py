@@ -107,20 +107,21 @@ def self_play(root, model, env, queue):
         obs, rew, done, info = env.step(chess.Move.from_uci(action))
         mcts.root = new_root
     for entry in data:
-        log.info(f'Reward for game: {rew}')
         # retroactively apply rewards now that we know the terminal reward
         if info['winner'] is None:
             # draw
             entry[-1] = rew
         else:
-            entry[-1] = rew if entry[0].color == info['winner'] else -rew
+            entry[-1] = rew if chess.Board(entry[0]).turn == info['winner'] else -rew
+    log.info(f'Reward for game: {rew}')
     return data
 
 
 def learn(model, optimizer, dataloader, env):
     total_loss = 0
     for i, samples in enumerate(dataloader):
-        s, pi, z = samples[:, 0], samples[:, 1], samples[:, 2]
+        s_fen, pi, z = samples[:, 0], samples[:, 1], samples[:, 2]
+        s = chess.Board(s_fen)
         extra_features = get_additional_features(s, env)
         planes = board_to_layers(*extra_features)
         p, v = model(torch.FloatTensor(planes))

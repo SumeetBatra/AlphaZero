@@ -41,7 +41,7 @@ class ChessDataset(Dataset):
         self.data = chess_data
 
     def __len__(self):
-        return self.data.shape[0]
+        return len(self.data)
 
     def __getitem__(self, item):
         return self.data[item]
