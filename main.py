@@ -115,6 +115,7 @@ if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0)
     # test()
+    log.info(f'Running on device: {device}')
     train()
     # env = chess_env.ChessEnv()
     # board = env.board

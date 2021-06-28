@@ -198,7 +198,7 @@ class ChessBoard(MCTSNode):
             p_acts = (1-eps) * p_acts + eps * noise
         np_board = np.array(str(self.board).split()).reshape(8, 8)
         action_inds = [encode_action(np_board, move, flattened=True) for move in self.legal_moves]
-        p_a = p_acts[action_inds].detach().numpy()
+        p_a = p_acts[action_inds].cpu().detach().numpy()
         p_a = p_a / np.sum(p_a)  # renormalize the probabilities
         self.child_P = p_a
         return val

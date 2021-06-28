@@ -99,10 +99,11 @@ def self_play(root, model, env, queue):
             new_game = False
         for i in range(SIMULATIONS):
             mcts.search()
-            log.debug(f'Finished simulation {i}')
+            # log.debug(f'Finished simulation {i}')
         action, new_root, entry = mcts.play()
         data.append(entry)
         new_root.delete_parent()  # delete tree above the new root
+        log.info(f'New root: \n {new_root.board} \n')
         obs, rew, done, _ = env.step(chess.Move.from_uci(action))
         mcts.root = new_root
     for entry in data:
