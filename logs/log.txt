@@ -916,3 +916,4 @@
 [36m[2021-06-27 20:33:50,568][23511] Finished simulation 2[0m
 [36m[2021-06-27 20:33:50,577][23511] Finished simulation 3[0m
 [36m[2021-06-27 20:33:50,586][23511] Finished simulation 4[0m
+[37m[01m[2021-06-28 09:51:57,709][24129] Running on device: cpu[0m

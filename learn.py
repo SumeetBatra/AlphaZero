@@ -103,7 +103,7 @@ def self_play(root, model, env, queue):
         action, new_root, entry = mcts.play()
         data.append(entry)
         new_root.delete_parent()  # delete tree above the new root
-        log.info(f'New root: \n {new_root.board} \n')
+        log.info(f'New root: \n {new_root.board} \n fen: {new_root.board.fen()}')
         obs, rew, done, _ = env.step(chess.Move.from_uci(action))
         mcts.root = new_root
     for entry in data:
