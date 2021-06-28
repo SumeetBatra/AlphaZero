@@ -4,3 +4,4 @@ __pycache__
 alphazero/cmake-build-debug
 alphazero/mcts/cmake-build-debug
 extern
+logs
