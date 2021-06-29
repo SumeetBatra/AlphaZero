@@ -115,7 +115,9 @@ def self_play(root, model, env, queue):
         else:
             entry[-1] = torch.Tensor([rew]) if entry[0].board.turn == info['winner'] else torch.Tensor([-rew])
     log.info(f'Reward for game: {rew}')
-    return data
+    info['rew'] = rew
+    info['game_length'] = int(mcts.root.board.fen().split(' ')[-1])
+    return data, info
 
 
 def learn(model, optimizer, dataloader, env):
