@@ -1,6 +1,9 @@
 import gym
 import chess
 import numpy as np
+import logging
+
+logger = logging.getLogger('rl')
 
 from gym import spaces
 
@@ -78,7 +81,7 @@ class ChessEnv(gym.Env):
 
         rew = self.board.result()
         rew, winner = self.process_reward(rew)
-        done = self.board.is_game_over() or self.repetitions >= 3
+        done = self.is_game_over(verbose=True) or self.repetitions >= 3
         info = {'winner': winner}
 
         return obs, rew, done, info
@@ -92,6 +95,56 @@ class ChessEnv(gym.Env):
         # obs = [pieces_to_id[s] for s in obs]
         # obs = np.array(obs).reshape(self.observation_space.shape)
         return obs
+
+    def is_game_over(self, *, claim_draw: bool = False, verbose=False) -> bool:
+        """
+        Rewrite of the chess library's version to allow for debugging
+        Checks if the game is over due to
+        :func:`checkmate <chess.Board.is_checkmate()>`,
+        :func:`stalemate <chess.Board.is_stalemate()>`,
+        :func:`insufficient material <chess.Board.is_insufficient_material()>`,
+        the :func:`seventyfive-move rule <chess.Board.is_seventyfive_moves()>`,
+        :func:`fivefold repetition <chess.Board.is_fivefold_repetition()>`
+        or a :func:`variant end condition <chess.Board.is_variant_end()>`.
+
+        The game is not considered to be over by the
+        :func:`fifty-move rule <chess.Board.can_claim_fifty_moves()>` or
+        :func:`threefold repetition <chess.Board.can_claim_threefold_repetition()>`,
+        unless *claim_draw* is given. Note that checking the latter can be
+        slow.
+        """
+        # Seventyfive-move rule.
+        if self.board.is_seventyfive_moves():
+            if verbose:
+                logger.debug("Game finished by seventyfive-move rule")
+            return True
+
+        # Insufficient material.
+        if self.board.is_insufficient_material():
+            if verbose:
+                logger.debug("Game finished by insufficient material")
+            return True
+
+        # Stalemate or checkmate.
+        if not any(self.board.generate_legal_moves()):
+            if verbose:
+                logger.debug("Game finished by stalemate or checkmate")
+            return True
+
+        if claim_draw:
+            # Claim draw, including by threefold repetition.
+            if self.board.can_claim_draw():
+                if verbose:
+                    logger.debug("Game finished by draw")
+                return True
+            return False
+        else:
+            # Fivefold repetition.
+            if self.board.is_fivefold_repetition():
+                if verbose:
+                    logger.debug("Game finished by fivefold repetition")
+                return True
+            return False
 
     @staticmethod
     def process_reward(rew):
