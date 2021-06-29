@@ -104,11 +104,12 @@ def train():
         data = self_play(obs, model, env, queue)
         log.info(f'Finished game {i}')
         train_data = ChessDataset(data)
-        dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
+        dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False, collate_fn=chess_collate)
         total_loss = learn(model, optimizer, dataloader, env)
 
-        log.info(f'Total Loss for game {i} is {total_loss}')
+        log.debug(f'Total Loss for game {i} is {total_loss}')
         tb_logger.log("Total Loss", total_loss, i)
+        obs = env.reset()
 
 
 

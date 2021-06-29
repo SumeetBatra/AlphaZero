@@ -2,6 +2,7 @@ import numpy as np
 import chess
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 
 from torch.utils.data import Dataset
 
@@ -31,6 +32,14 @@ planeidx_to_kdelta = {56: (2, 1), 57: (1, 2), 58: (-1, 2), 59: (-2, 1),
 numerical_to_underpromotion = {1: 'n', 2: 'b', 3: 'r'}
 
 numerical_to_pdelta = {1: (1, 1), 2: (0, 1), 3: (-1, 1)}
+
+
+def chess_collate(batch):
+    batch = list(zip(*batch))
+    s, pi, z = batch[0], batch[1], batch[2]
+    pi = nn.utils.rnn.pad_sequence(pi).T # pad variable length logit tensors
+    return s, pi, torch.stack(z)
+
 
 
 class ChessDataset(Dataset):

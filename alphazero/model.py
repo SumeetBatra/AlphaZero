@@ -52,7 +52,8 @@ class PolicyHead(nn.Module):
         self.linear = nn.Linear(board_size ** 2 * 2, n_moves)
 
     def forward(self, x):
-        out = self.block(x).view(1, -1)
+        batch_size = x.shape[0]
+        out = self.block(x).view(batch_size, -1)
         out = self.linear(out)
         return F.softmax(out.squeeze(), dim=0)
 
@@ -73,7 +74,8 @@ class ValueHead(nn.Module):
         )
 
     def forward(self, x):
-        out = self.block1(x).view(1, -1)
+        batch_size = x.shape[0]
+        out = self.block1(x).view(batch_size, -1)
         out = self.block2(out)
         return out
 

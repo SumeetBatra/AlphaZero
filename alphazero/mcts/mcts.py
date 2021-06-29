@@ -73,7 +73,7 @@ class MCTS(object):
         else:
             logits = np.power(np.array(logits), 1.0 / temp)
             action = np.random.choice(len(self.root.legal_moves), p=logits)
-        return self.root.legal_moves[action], self.root.children[action], [self.root.board.fen(), Categorical(torch.Tensor(logits)), None]  # we don't know the reward yet - will be retroactively updated
+        return self.root.legal_moves[action], self.root.children[action], [self.root, torch.Tensor(logits), None]  # we don't know the reward yet - will be retroactively updated
 
     def play(self):
         action, child, datapoint = self._sample(temp=1.0)

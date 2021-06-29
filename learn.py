@@ -1,19 +1,20 @@
 import torch
 import chess
 import torch.nn as nn
+import numpy as np
 
 import chess_env
 import utils
 
 from alphazero.mcts.mcts import MCTS, ChessBoard
 from utils import TBLogger, log
-from chess_utils import ChessDataset
+from chess_utils import encode_action
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TIMESTEPS = 8
 M = 13  # From AlphaZero: we have NxN (MT + L) layers. In the paper, M=14 cuz of repetitions=2 instead of 1 for whatever reason
-SIMULATIONS = 200
+SIMULATIONS = 3
 logger = TBLogger()
 
 
@@ -90,7 +91,7 @@ def get_additional_features(board: chess.Board):
 
 def self_play(root, model, env, queue):
     state = ChessBoard(root, None)
-    data = [] # stores (s_t, pi_t, z_t)
+    data = []  # stores (s_t, pi_t, z_t)
     done = False
     new_game = True
     while not done:
@@ -110,9 +111,9 @@ def self_play(root, model, env, queue):
         # retroactively apply rewards now that we know the terminal reward
         if info['winner'] is None:
             # draw
-            entry[-1] = rew
+            entry[-1] = torch.Tensor([rew])
         else:
-            entry[-1] = rew if chess.Board(entry[0]).turn == info['winner'] else -rew
+            entry[-1] = torch.Tensor([rew]) if entry[0].board.turn == info['winner'] else torch.Tensor([-rew])
     log.info(f'Reward for game: {rew}')
     return data
 
@@ -120,15 +121,20 @@ def self_play(root, model, env, queue):
 def learn(model, optimizer, dataloader, env):
     total_loss = 0
     for i, samples in enumerate(dataloader):
-        s_fen, pi, z = samples[:, 0], samples[:, 1], samples[:, 2]
-        s = chess.Board(s_fen)
-        extra_features = get_additional_features(s, env)
-        planes = board_to_layers(*extra_features)
+        states, pi, z = samples[0], samples[1], samples[2]
+        batch_size = pi.shape[0]
+        extra_features = [get_additional_features(s.board) for s in states]
+        planes = torch.stack([board_to_layers(s.board_stack, s.repetitions, *extra_feature) for s, extra_feature in zip(states, extra_features)]).squeeze(1)
         p, v = model(torch.FloatTensor(planes))
+
+        np_boards = [np.array(str(s.board).split()).reshape(8, 8) for s in states]
+        action_inds = [[encode_action(np_board, move, flattened=True) for move in s.legal_moves] for np_board, s in zip(np_boards, states)]
+        p_a = [p[i, action_ind] for i, action_ind in enumerate(action_inds)]
+        p_a = nn.utils.rnn.pad_sequence(p_a).T
 
         optimizer.zero_grad()
         value_loss = nn.MSELoss()(v, z)
-        policy_loss = -torch.sum(p * pi)
+        policy_loss = -torch.sum(p_a * pi)
         loss = value_loss + policy_loss
         total_loss += loss
         loss.backward()
