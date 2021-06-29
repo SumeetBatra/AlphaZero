@@ -85,6 +85,9 @@ def play_random_game(model, board, env):
         board.push(move)
         t += 1
 
+def get_lr(optimizer):
+    for param_group in optimizer.param_groups:
+        return param_group['lr']
 
 def random_action(filtered_acts, legal_moves):
     assert all(e in filtered_acts for e in legal_moves), f'Filtered actions: {filtered_acts} and legal moves: {legal_moves} are not the same :('
@@ -102,13 +105,14 @@ def train():
     queue = []
     for i in range(NUM_GAMES):
         data = self_play(obs, model, env, queue)
-        log.info(f'Finished game {i}')
+        log.info(f'Finished game {i+1}')
         train_data = ChessDataset(data)
         dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False, collate_fn=chess_collate)
         total_loss = learn(model, optimizer, dataloader, env)
 
-        log.debug(f'Total Loss for game {i} is {total_loss}')
+        log.debug(f'Total Loss for game {i+1} is {total_loss}')
         tb_logger.log("Total Loss", total_loss, i)
+        tb_logger.log("lr", get_lr(optimizer), i)
         obs = env.reset()
 
 

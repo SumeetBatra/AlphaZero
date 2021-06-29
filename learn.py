@@ -122,15 +122,19 @@ def learn(model, optimizer, dataloader, env):
     total_loss = 0
     for i, samples in enumerate(dataloader):
         states, pi, z = samples[0], samples[1], samples[2]
+        pi = pi.to(device)
+        z = z.to(device)
         batch_size = pi.shape[0]
         extra_features = [get_additional_features(s.board) for s in states]
-        planes = torch.stack([board_to_layers(s.board_stack, s.repetitions, *extra_feature) for s, extra_feature in zip(states, extra_features)]).squeeze(1)
-        p, v = model(torch.FloatTensor(planes))
+        planes = torch.stack([board_to_layers(s.board_stack, s.repetitions, *extra_feature) for s, extra_feature in zip(states, extra_features)]).squeeze(1).to(device)
+        p, v = model(planes)
+        if batch_size == 1:
+            p = p.view(1, -1)
 
         np_boards = [np.array(str(s.board).split()).reshape(8, 8) for s in states]
         action_inds = [[encode_action(np_board, move, flattened=True) for move in s.legal_moves] for np_board, s in zip(np_boards, states)]
-        p_a = [p[i, action_ind] for i, action_ind in enumerate(action_inds)]
-        p_a = nn.utils.rnn.pad_sequence(p_a).T
+        p_a = [p[i, acts] for i, acts in enumerate(action_inds)]
+        p_a = nn.utils.rnn.pad_sequence(p_a).T.to(device)
 
         optimizer.zero_grad()
         value_loss = nn.MSELoss()(v, z)
