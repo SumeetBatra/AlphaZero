@@ -137,10 +137,11 @@ def learn(model, optimizer, dataloader, env):
         action_inds = [[encode_action(np_board, move, flattened=True) for move in s.legal_moves] for np_board, s in zip(np_boards, states)]
         p_a = [p[i, acts] for i, acts in enumerate(action_inds)]
         p_a = nn.utils.rnn.pad_sequence(p_a).T.to(device)
+        logp = torch.log(p_a)
 
         optimizer.zero_grad()
-        value_loss = -nn.MSELoss()(v, z)
-        policy_loss = -torch.sum(p_a * pi)
+        value_loss = nn.MSELoss()(v, z)
+        policy_loss = -torch.mean(torch.sum(pi * logp, dim=1))
         loss = value_loss + policy_loss
         total_loss += loss
         loss.backward()
