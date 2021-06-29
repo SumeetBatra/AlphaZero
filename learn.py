@@ -139,7 +139,7 @@ def learn(model, optimizer, dataloader, env):
         p_a = nn.utils.rnn.pad_sequence(p_a).T.to(device)
 
         optimizer.zero_grad()
-        value_loss = nn.MSELoss()(v, z)
+        value_loss = -nn.MSELoss()(v, z)
         policy_loss = -torch.sum(p_a * pi)
         loss = value_loss + policy_loss
         total_loss += loss
