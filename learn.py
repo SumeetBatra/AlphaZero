@@ -135,9 +135,8 @@ def learn(model, optimizer, dataloader, env):
 
         np_boards = [np.array(str(s.board).split()).reshape(8, 8) for s in states]
         action_inds = [[encode_action(np_board, move, flattened=True) for move in s.legal_moves] for np_board, s in zip(np_boards, states)]
-        p_a = [p[i, acts] for i, acts in enumerate(action_inds)]
-        p_a = nn.utils.rnn.pad_sequence(p_a).T.to(device)
-        logp = torch.log(p_a)
+        logp = [torch.log(p[i, acts]) for i, acts in enumerate(action_inds)]
+        logp = nn.utils.rnn.pad_sequence(logp).T.to(device)
 
         optimizer.zero_grad()
         value_loss = nn.MSELoss()(v, z)
