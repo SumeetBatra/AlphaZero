@@ -14,7 +14,7 @@ from chess_utils import encode_action
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TIMESTEPS = 8
 M = 13  # From AlphaZero: we have NxN (MT + L) layers. In the paper, M=14 cuz of repetitions=2 instead of 1 for whatever reason
-SIMULATIONS = 30
+SIMULATIONS = 100
 logger = TBLogger()
 
 
