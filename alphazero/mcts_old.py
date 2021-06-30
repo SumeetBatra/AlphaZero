@@ -5,6 +5,7 @@ import torch.multiprocessing as mp
 from abc import ABC, abstractmethod
 from torch.distributions.categorical import Categorical
 from chess_utils import *
+from utils import log
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TIME_STEPS = 8
@@ -41,8 +42,8 @@ class MCTS(object):
         '''
         self._encoded_state_counter.clear()
 
-    def search(self, lock):
-        leaf = self.root.select_leaf(lock)
+    def search(self):
+        leaf = self.root.select_leaf()
         val = leaf.expand(self.model)
         self._backprop(leaf, val)
 
@@ -72,7 +73,7 @@ class MCTS(object):
         else:
             logits = np.power(np.array(logits), 1.0 / temp)
             action = np.random.choice(len(self.root.legal_moves), p=logits)
-        return self.root.legal_moves[action], self.root.children[action], [self.root.board, Categorical(torch.Tensor(logits)), None]  # we don't know the reward yet - will be retroactively updated
+        return self.root.legal_moves[action], self.root.children[action], [self.root, torch.Tensor(logits), None]  # we don't know the reward yet - will be retroactively updated
 
     def play(self):
         action, child, datapoint = self._sample(temp=1.0)
@@ -86,7 +87,7 @@ class MCTSNode(ABC):
         pass
 
     @abstractmethod
-    def select_leaf(self, lock):
+    def select_leaf(self):
         pass
 
     @abstractmethod
@@ -110,6 +111,7 @@ class ChessBoard(MCTSNode):
         self.move = move  # idx of move that was taken to get to this node. None if root
         self.board = board
         self.color = board.turn
+        self.visits = 0 # only used for root node b/c it has no parent
         if self.color == chess.BLACK:
             #  board should be in orientation of current player when fed to the neural network
             nn_board = board.copy()
@@ -131,11 +133,15 @@ class ChessBoard(MCTSNode):
 
     @property
     def visit_count(self):
-        return self.parent.child_N[self.move] if self.parent else 1  # if self.parent == None i.e root node, return 1
+        return self.parent.child_N[self.move] if self.parent else self.visits  # if self.parent == None i.e root node, return 1
 
     @visit_count.setter
     def visit_count(self, visits):
-        if self.parent: self.parent.child_N[self.move] = visits
+        if self.parent:
+            self.parent.child_N[self.move] = visits
+        else:
+            self.visits = visits
+
 
     @property
     def total_value(self):
@@ -168,18 +174,18 @@ class ChessBoard(MCTSNode):
             self.children[move_idx] = child
             return child
 
-    def select_leaf(self, lock):
+    def select_leaf(self):
         node = self
-        while node.visited:
+        while node.visited and not node.is_terminal():
             ##############################################
             # virtual loss
-            with lock:
-                node.visit_count += 1
-                node.total_value -= 1
+            node.visit_count = node.visit_count + 1
+            node.total_value -= 1
             ##############################################
             node = node.best_child()
-            print(f'Best child: \n {node.board}')
-            time.sleep(0.1)
+
+            # log.debug(f'Best child: \n {node.board}\n')
+            # time.sleep(0.1)
         return node
 
     def expand(self, model, root=False):
@@ -192,7 +198,7 @@ class ChessBoard(MCTSNode):
             p_acts = (1-eps) * p_acts + eps * noise
         np_board = np.array(str(self.board).split()).reshape(8, 8)
         action_inds = [encode_action(np_board, move, flattened=True) for move in self.legal_moves]
-        p_a = p_acts[action_inds].detach().numpy()
+        p_a = p_acts[action_inds].cpu().detach().numpy()
         p_a = p_a / np.sum(p_a)  # renormalize the probabilities
         self.child_P = p_a
         return val
@@ -205,3 +211,12 @@ class ChessBoard(MCTSNode):
 
     def is_terminal(self):
         return self.board.is_game_over() or self.repetitions >= 3
+
+    def print(self):
+        # easy to visualize the board during debugging
+        return np.array(str(self.board).split()).reshape(8, 8)
+
+    def delete_parent(self):
+        # delete parent so that current node becomes the new root
+        self.visits = self.visit_count - 1  # subtract 1 so that root visits = sum(child_N)
+        self.parent = None

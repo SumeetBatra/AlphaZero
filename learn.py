@@ -1,19 +1,20 @@
 import torch
 import chess
-import numpy as np
 import torch.nn as nn
+import numpy as np
 
 import chess_env
 
 from alphazero.mcts import MCTS, ChessBoard
-from chess_utils import ChessDataset
+from utils import TBLogger, log
+from chess_utils import encode_action
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-TOTAL_STEPS = 7e5
 TIMESTEPS = 8
 M = 13  # From AlphaZero: we have NxN (MT + L) layers. In the paper, M=14 cuz of repetitions=2 instead of 1 for whatever reason
-SIMULATIONS = 5
+SIMULATIONS = 30
+logger = TBLogger()
 
 
 def board_to_layers(boards, repetitions, color, total_moves, w_castling, b_castling, no_progress_count):
@@ -89,36 +90,59 @@ def get_additional_features(board: chess.Board):
 
 def self_play(root, model, env, queue):
     state = ChessBoard(root, None)
-    data = [] # stores (s_t, pi_t, z_t)
+    data = []  # stores (s_t, pi_t, z_t)
     done = False
+    new_game = True
     while not done:
-        mcts = MCTS(state, model)
+        if new_game:
+            mcts = MCTS(state, model)
+            new_game = False
         for i in range(SIMULATIONS):
             mcts.search()
-            print(f'Finished simulation {i}')
+            # log.debug(f'Finished simulation {i}')
         action, new_root, entry = mcts.play()
         data.append(entry)
-        new_root.parent = None  # delete tree above the new root
-        obs, rew, done, _ = env.step(chess.Move.from_uci(action))
-        state = new_root
-    print("Finished a game")
+        new_root.delete_parent()  # delete tree above the new root
+        log.info(f'New root: \n {new_root.board} \n fen: {new_root.board.fen()}')
+        obs, rew, done, info = env.step(chess.Move.from_uci(action))
+        mcts.root = new_root
     for entry in data:
         # retroactively apply rewards now that we know the terminal reward
-        entry[-1] = rew if state.color == entry[0].color else -rew
-
-    queue.put(ChessDataset(data))  # shared queue
+        if info['winner'] is None:
+            # draw
+            entry[-1] = torch.Tensor([rew])
+        else:
+            entry[-1] = torch.Tensor([rew]) if entry[0].board.turn == info['winner'] else torch.Tensor([-rew])
+    log.info(f'Reward for game: {rew}')
+    info['rew'] = rew
+    info['game_length'] = int(mcts.root.board.fen().split(' ')[-1])
+    return data, info
 
 
 def learn(model, optimizer, dataloader, env):
-    for _, samples in enumerate(dataloader):
-        s, pi, z = samples[:, 0], samples[:, 1], samples[:, 2]
-        extra_features = get_additional_features(s, env)
-        planes = board_to_layers(*extra_features)
-        p, v = model(torch.FloatTensor(planes))
+    total_loss = 0
+    for i, samples in enumerate(dataloader):
+        states, pi, z = samples[0], samples[1], samples[2]
+        pi = pi.to(device)
+        z = z.to(device)
+        batch_size = pi.shape[0]
+        extra_features = [get_additional_features(s.board) for s in states]
+        planes = torch.stack([board_to_layers(s.board_stack, s.repetitions, *extra_feature) for s, extra_feature in zip(states, extra_features)]).squeeze(1).to(device)
+        p, v = model(planes)
+        if batch_size == 1:
+            p = p.view(1, -1)
+
+        np_boards = [np.array(str(s.board).split()).reshape(8, 8) for s in states]
+        action_inds = [[encode_action(np_board, move, flattened=True) for move in s.legal_moves] for np_board, s in zip(np_boards, states)]
+        logp = [torch.log(p[i, acts]) for i, acts in enumerate(action_inds)]
+        logp = nn.utils.rnn.pad_sequence(logp).T.to(device)
 
         optimizer.zero_grad()
         value_loss = nn.MSELoss()(v, z)
-        policy_loss = -torch.sum(p * pi)
+        policy_loss = -torch.mean(torch.sum(pi * logp, dim=1))
         loss = value_loss + policy_loss
+        total_loss += loss
         loss.backward()
         optimizer.step()
+
+    return total_loss
