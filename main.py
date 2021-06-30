@@ -8,17 +8,14 @@ from chess_utils import *
 from alphazero.model import AlphaZero
 
 from torch.utils.data.dataloader import DataLoader
-from utils import listener_process, listener_configurer, worker_process, worker_configurer
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-NUM_GAMES = int(1000)
+TOTAL_STEPS = int(7e5)
+USE_TENSORBOARD = False
 BATCH_SIZE = 32
 L2_REG = 1e-4
 
-tb_logger = TBLogger()
-
-torch.multiprocessing.set_start_method('spawn', force=True)
 
 def test():
     '''
@@ -85,9 +82,6 @@ def play_random_game(model, board, env):
         board.push(move)
         t += 1
 
-def get_lr(optimizer):
-    for param_group in optimizer.param_groups:
-        return param_group['lr']
 
 def random_action(filtered_acts, legal_moves):
     assert all(e in filtered_acts for e in legal_moves), f'Filtered actions: {filtered_acts} and legal moves: {legal_moves} are not the same :('
@@ -98,24 +92,31 @@ def train():
     env = chess_env.ChessEnv()
     obs_dim = int(env.observation_space.shape[0] * env.observation_space.shape[1])
     n_acts = env.action_space.n
-    model = AlphaZero(env.n_planes, height=1).to(device)
+    model = AlphaZero(env.n_planes).to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.2, weight_decay=L2_REG)
 
     obs = env.reset()
     queue = []
-    for i in range(NUM_GAMES):
-        data, info = self_play(obs, model, env, queue)
-        log.info(f'Finished game {i+1}')
+    for i in range(TOTAL_STEPS):
+        data = self_play(obs, model, env, queue)
         train_data = ChessDataset(data)
-        dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False, collate_fn=chess_collate)
-        total_loss = learn(model, optimizer, dataloader, env)
+        dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
+        learn(env, model, optimizer, dataloader)
 
-        log.debug(f'Total Loss for game {i+1} is {total_loss}')
-        tb_logger.log("Total Loss", total_loss, i)
-        tb_logger.log("lr", get_lr(optimizer), i)
-        tb_logger.log('rew', info['rew'], i)
-        tb_logger.log('game_length', info['game_length'], i)
-        obs = env.reset()
+    # actors = []
+    # q = mp.Queue()
+    # for rank in range(1):
+    #     actor = mp.Process(target=self_play, args=(obs, model, env, q))
+    #     actor.start()
+    #     actors.append(actor)
+    #
+    #     while any(actor.is_alive() for actor in actors) or not q.empty():
+    #         print("Waiting for training data...")
+    #         train_data = q.get()
+    #         print("Updating the network...")
+    #         dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=False)
+    #         learn(env, model, optimizer, dataloader)
+    #         print("Finished updating the network! ")
 
 
 
@@ -124,24 +125,8 @@ def train():
 if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0)
-    queue = mp.Queue(-1)
-    listener = mp.Process(target=listener_process,
-                                       args=(queue, listener_configurer))
-    listener.start()
-
-    workers = []
-    for _ in range(1):
-        worker = mp.Process(target=worker_process,
-                                         args=(queue, worker_configurer, train))
-        workers.append(worker)
-        worker.start()
-    for w in workers:
-        w.join()
-    queue.put_nowait(None)
-    listener.join()
     # test()
-    log.info(f'Running on device: {device}')
-    # train()
+    train()
     # env = chess_env.ChessEnv()
     # board = env.board
     # model = AlphaZero(env.n_planes).to(device)
